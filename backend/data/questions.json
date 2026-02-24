@@ -1,0 +1,1394 @@
+[
+  {
+  "id": "1",
+  "title": "Two Sum",
+  "difficulty": "Easy",
+  "tags": [
+    "array",
+    "hashmap"
+  ],
+  "description": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.",
+  "constraints": "2 <= nums.length <= 10^4, -10^9 <= nums[i] <= 10^9",
+  "sampleCases": [
+    {
+      "input": {
+        "nums": [2, 7, 11, 15],
+        "target": 9
+      },
+      "expectedOutput": [0, 1]
+    },
+    {
+      "input": {
+        "nums": [3, 2, 4],
+        "target": 6
+      },
+      "expectedOutput": [1, 2]
+    }
+  ],
+  "hiddenCases": [
+    {
+      "input": { "nums": [3, 3], "target": 6 },
+      "expectedOutput": [0, 1]
+    },
+    {
+      "input": { "nums": [1, 2, 3, 4, 5], "target": 10 },
+      "expectedOutput": []
+    },
+    {
+      "input": { "nums": [1, 1, 1, 1], "target": 2 },
+      "expectedOutput": [0, 1]
+    },
+    {
+      "input": { "nums": [0, 4, 3, 0], "target": 0 },
+      "expectedOutput": [0, 3]
+    },
+    {
+      "input": { "nums": [5, 75, 25], "target": 100 },
+      "expectedOutput": [1, 2]
+    },
+    {
+      "input": { "nums": [2, 5, 5, 11], "target": 10 },
+      "expectedOutput": [1, 2]
+    },
+    {
+      "input": { "nums": [10, 20, 30, 40, 50], "target": 90 },
+      "expectedOutput": [3, 4]
+    },
+    {
+      "input": { "nums": [1, 2, 3, 9], "target": 8 },
+      "expectedOutput": []
+    }
+  ],
+  "inputFormat": "First line contains an integer T — number of test cases. Each test case consists of three lines:\n1) an integer n — the number of elements in the array nums.\n2) n space-separated integers — the array nums.\n3) an integer target — the target sum.\n(Example for a single test case: n on line 1, nums on line 2, target on line 3.)",
+  "outputFormat": "For each test case print the indices of the two numbers that add up to target in the format of a JSON-like array on a single line (e.g. [0,1]). If no valid pair exists, print [] for that test case. (Indices are 0-based as in the samples.)",
+  "sampleIO": {
+    "input": "2\n4\n2 7 11 15\n9\n3\n3 2 4\n6",
+    "output": "[0,1]\n[1,2]"
+  },
+  "similar": ["5", "7", "10", "17", "18", "24", "25"] 
+},
+{
+  "id": "2",
+  "title": "Reverse Linked List",
+  "difficulty": "Easy",
+  "tags": [
+    "linked-list"
+  ],
+  "description": "Given the head of a singly linked list, reverse the list, and return the reversed list.",
+  "constraints": "The number of nodes in the list is in the range [0, 5000]. -5000 <= Node.val <= 5000",
+  "sampleCases": [
+    {
+      "input": { "list": [1, 2, 3, 4, 5] },
+      "expectedOutput": [5, 4, 3, 2, 1]
+    },
+    {
+      "input": { "list": [1, 2] },
+      "expectedOutput": [2, 1]
+    }
+  ],
+  "hiddenCases": [
+    { "input": { "list": [] }, "expectedOutput": [] },
+    { "input": { "list": [1] }, "expectedOutput": [1] },
+    { "input": { "list": [1, 2, 3] }, "expectedOutput": [3, 2, 1] },
+    { "input": { "list": [7, 8, 9, 10] }, "expectedOutput": [10, 9, 8, 7] },
+    { "input": { "list": [100, 200, 300] }, "expectedOutput": [300, 200, 100] },
+    { "input": { "list": [5, 4, 3, 2, 1] }, "expectedOutput": [1, 2, 3, 4, 5] }
+  ],
+  "inputFormat": "First line contains integer T — number of test cases. Each test case consists of two lines:\n1) an integer n — number of nodes in the linked list.\n2) n space-separated integers — the node values in order (the linked list from head to tail).\n(If T is 1 you can omit the first line and provide n and the list.)",
+  "outputFormat": "For each test case print the reversed linked list as a JSON-like array on its own line, e.g. [5,4,3,2,1].",
+  "sampleIO": {
+    "input": "2\n5\n1 2 3 4 5\n2\n1 2",
+    "output": "[5,4,3,2,1]\n[2,1]"
+  },
+  "similar": ["4", "12", "15", "16", "27"] 
+},
+
+  {
+  "id": "3",
+  "title": "Trapping Rain Water",
+  "difficulty": "Hard",
+  "tags": ["array", "two-pointers", "stack"],
+  "description": "Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it can trap after raining.",
+  "constraints": "1 <= height.length <= 2 * 10^4, 0 <= height[i] <= 10^5",
+  "sampleCases": [
+    { "input": { "height": [0,1,0,2,1,0,1,3,2,1,2,1] }, "expectedOutput": 6 },
+    { "input": { "height": [4,2,0,3,2,5] }, "expectedOutput": 9 }
+  ],
+  "hiddenCases": [
+    { "input": { "height": [0,0,0,0] }, "expectedOutput": 0 },
+    { "input": { "height": [2,0,2] }, "expectedOutput": 2 },
+    { "input": { "height": [3,0,1,3,0,5] }, "expectedOutput": 8 },
+    { "input": { "height": [1,2,1,2,1] }, "expectedOutput": 1 },
+    { "input": { "height": [5,4,1,2] }, "expectedOutput": 1 }
+  ],
+  "inputFormat": "First line contains integer n — number of bars. Second line contains n space-separated integers representing the height of bars.",
+  "outputFormat": "Print the total amount of trapped water as an integer.",
+  "sampleIO": { "input": "12\n0 1 0 2 1 0 1 3 2 1 2 1", "output": "6" },
+  "similar": ["10", "17", "18"]
+},
+{
+  "id": "4",
+  "title": "Merge Two Sorted Lists",
+  "difficulty": "Easy",
+  "tags": ["linked-list"],
+  "description": "Merge two sorted linked lists and return it as a new sorted list.",
+  "constraints": "The number of nodes in both lists is in the range [0, 50]. -100 <= Node.val <= 100",
+  "sampleCases": [
+    { "input": { "list1": [1,2,4], "list2": [1,3,4] }, "expectedOutput": [1,1,2,3,4,4] },
+    { "input": { "list1": [], "list2": [0] }, "expectedOutput": [0] }
+  ],
+  "hiddenCases": [
+    { "input": { "list1": [], "list2": [] }, "expectedOutput": [] },
+    { "input": { "list1": [2], "list2": [1] }, "expectedOutput": [1,2] },
+    { "input": { "list1": [1,1,2], "list2": [1,3] }, "expectedOutput": [1,1,1,2,3] },
+    { "input": { "list1": [0,3,5], "list2": [1,2,4] }, "expectedOutput": [0,1,2,3,4,5] },
+    { "input": { "list1": [-1,1], "list2": [-2,0] }, "expectedOutput": [-2,-1,0,1] }
+  ],
+  "inputFormat": "Two lines, each representing a linked list in space-separated integers.",
+  "outputFormat": "Print the merged linked list as a JSON-like array.",
+  "sampleIO": { "input": "1 2 4\n1 3 4", "output": "[1,1,2,3,4,4]" },
+  "similar": ["2", "16"]
+},
+{
+  "id": "5",
+  "title": "Maximum Subarray",
+  "difficulty": "Medium",
+  "tags": ["array", "dynamic-programming"],
+  "description": "Find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.",
+  "constraints": "-10^4 <= nums[i] <= 10^4, 1 <= nums.length <= 3 * 10^4",
+  "sampleCases": [
+    { "input": { "nums": [-2,1,-3,4,-1,2,1,-5,4] }, "expectedOutput": 6 },
+    { "input": { "nums": [1] }, "expectedOutput": 1 }
+  ],
+  "hiddenCases": [
+    { "input": { "nums": [-1,-2,-3,-4] }, "expectedOutput": -1 },
+    { "input": { "nums": [5,4,-1,7,8] }, "expectedOutput": 23 },
+    { "input": { "nums": [0,0,0] }, "expectedOutput": 0 },
+    { "input": { "nums": [2,3,-2,4] }, "expectedOutput": 7 },
+    { "input": { "nums": [1,2,3,4,-10,5] }, "expectedOutput": 10 }
+  ],
+  "inputFormat": "Single line with n space-separated integers representing the array.",
+  "outputFormat": "Print the maximum sum of a contiguous subarray.",
+  "sampleIO": { "input": "-2 1 -3 4 -1 2 1 -5 4", "output": "6" },
+  "similar": ["24", "26"]
+},
+{
+  "id": "6",
+  "title": "Climbing Stairs",
+  "difficulty": "Easy",
+  "tags": ["dynamic-programming"],
+  "description": "You are climbing a staircase. It takes n steps to reach the top. Each time you can climb 1 or 2 steps. Find how many distinct ways you can climb to the top.",
+  "constraints": "1 <= n <= 45",
+  "sampleCases": [
+    { "input": { "n": 2 }, "expectedOutput": 2 },
+    { "input": { "n": 3 }, "expectedOutput": 3 }
+  ],
+  "hiddenCases": [
+    { "input": { "n": 1 }, "expectedOutput": 1 },
+    { "input": { "n": 4 }, "expectedOutput": 5 },
+    { "input": { "n": 5 }, "expectedOutput": 8 },
+    { "input": { "n": 10 }, "expectedOutput": 89 },
+    { "input": { "n": 20 }, "expectedOutput": 10946 }
+  ],
+  "inputFormat": "Single integer n representing the total steps.",
+  "outputFormat": "Print the number of distinct ways to climb to the top.",
+  "sampleIO": { "input": "3", "output": "3" },
+  "similar": ["5", "27"]
+},
+{
+  "id": "7",
+  "title": "Best Time to Buy and Sell Stock",
+  "difficulty": "Easy",
+  "tags": ["array", "greedy"],
+  "description": "You are given an array prices where prices[i] is the price of a given stock on the ith day. Maximize your profit by choosing a single day to buy and a different day to sell.",
+  "constraints": "1 <= prices.length <= 10^5, 0 <= prices[i] <= 10^4",
+  "sampleCases": [
+    { "input": { "prices": [7,1,5,3,6,4] }, "expectedOutput": 5 },
+    { "input": { "prices": [1,2,3,4,5] }, "expectedOutput": 4 }
+  ],
+  "hiddenCases": [
+    { "input": { "prices": [7,6,4,3,1] }, "expectedOutput": 0 },
+    { "input": { "prices": [3,2,6,5,0,3] }, "expectedOutput": 4 },
+    { "input": { "prices": [1,2] }, "expectedOutput": 1 },
+    { "input": { "prices": [2,4,1] }, "expectedOutput": 2 },
+    { "input": { "prices": [5,4,3,2,1] }, "expectedOutput": 0 }
+  ],
+  "inputFormat": "Single line containing space-separated integers representing stock prices.",
+  "outputFormat": "Print the maximum profit obtainable from a single buy-sell transaction.",
+  "sampleIO": { "input": "7 1 5 3 6 4", "output": "5" },
+  "similar": ["3", "17"]
+},
+{
+  "id": "8",
+  "title": "Valid Palindrome",
+  "difficulty": "Easy",
+  "tags": ["string", "two-pointers"],
+  "description": "Given a string, determine if it is a palindrome, considering only alphanumeric characters and ignoring cases.",
+  "constraints": "1 <= s.length <= 2 * 10^5, s consists only of printable ASCII characters",
+  "sampleCases": [
+    { "input": { "s": "A man, a plan, a canal: Panama" }, "expectedOutput": true },
+    { "input": { "s": "race a car" }, "expectedOutput": false }
+  ],
+  "hiddenCases": [
+    { "input": { "s": "" }, "expectedOutput": true },
+    { "input": { "s": " " }, "expectedOutput": true },
+    { "input": { "s": "0P" }, "expectedOutput": false },
+    { "input": { "s": "abba" }, "expectedOutput": true },
+    { "input": { "s": "abcba" }, "expectedOutput": true }
+  ],
+  "inputFormat": "Single line containing the string s.",
+  "outputFormat": "Print true if the string is a valid palindrome, else false.",
+  "sampleIO": { "input": "A man, a plan, a canal: Panama", "output": "true" },
+  "similar": ["12", "22"]
+},
+{
+  "id": "9",
+  "title": "Search in Rotated Sorted Array",
+  "difficulty": "Medium",
+  "tags": ["array", "binary-search"],
+  "description": "Given a rotated sorted array and a target value, return its index if found, else -1.",
+  "constraints": "1 <= nums.length <= 5000, -10^4 <= nums[i] <= 10^4, all values are unique",
+  "sampleCases": [
+    { "input": { "nums": [4,5,6,7,0,1,2], "target": 0 }, "expectedOutput": 4 },
+    { "input": { "nums": [4,5,6,7,0,1,2], "target": 3 }, "expectedOutput": -1 }
+  ],
+  "hiddenCases": [
+    { "input": { "nums": [1], "target": 0 }, "expectedOutput": -1 },
+    { "input": { "nums": [1,3], "target": 3 }, "expectedOutput": 1 },
+    { "input": { "nums": [5,1,3], "target": 5 }, "expectedOutput": 0 },
+    { "input": { "nums": [1,2,3,4,5], "target": 4 }, "expectedOutput": 3 },
+    { "input": { "nums": [6,7,1,2,3,4,5], "target": 3 }, "expectedOutput": 4 }
+  ],
+  "inputFormat": "First line contains n — number of elements. Second line contains n space-separated integers. Third line contains the target integer.",
+  "outputFormat": "Print the index of target if found, else -1.",
+  "sampleIO": { "input": "7\n4 5 6 7 0 1 2\n0", "output": "4" },
+  "similar": ["10", "17"]
+},
+{
+  "id": "10",
+  "title": "Container With Most Water",
+  "difficulty": "Medium",
+  "tags": ["array", "two-pointers"],
+  "description": "Given n non-negative integers a1, a2, ..., an, where each represents a point at coordinate (i, ai). Find two lines that together with x-axis forms a container, such that the container contains the most water.",
+  "constraints": "2 <= height.length <= 10^5, 0 <= height[i] <= 10^4",
+  "sampleCases": [
+    { "input": { "height": [1,8,6,2,5,4,8,3,7] }, "expectedOutput": 49 },
+    { "input": { "height": [1,1] }, "expectedOutput": 1 }
+  ],
+  "hiddenCases": [
+    { "input": { "height": [4,3,2,1,4] }, "expectedOutput": 16 },
+    { "input": { "height": [1,2,1] }, "expectedOutput": 2 },
+    { "input": { "height": [1,2,4,3] }, "expectedOutput": 4 },
+    { "input": { "height": [1,3,2,5,25,24,5] }, "expectedOutput": 24 },
+    { "input": { "height": [2,3,10,5,7,8,9] }, "expectedOutput": 36 }
+  ],
+  "inputFormat": "Single line with n space-separated integers representing heights.",
+  "outputFormat": "Print the maximum area that can be formed.",
+  "sampleIO": { "input": "1 8 6 2 5 4 8 3 7", "output": "49" },
+  "similar": ["3", "17", "18"]
+},
+{
+  "id": "11",
+  "title": "Longest Increasing Subsequence",
+  "difficulty": "Hard",
+  "tags": ["array", "dynamic-programming", "binary-search"],
+  "description": "Given an integer array, find the length of the longest strictly increasing subsequence.",
+  "constraints": "1 <= nums.length <= 2500, -10^4 <= nums[i] <= 10^4",
+  "sampleCases": [
+    { "input": { "nums": [10,9,2,5,3,7,101,18] }, "expectedOutput": 4 },
+    { "input": { "nums": [0,1,0,3,2,3] }, "expectedOutput": 4 }
+  ],
+  "hiddenCases": [
+    { "input": { "nums": [7,7,7,7,7,7,7] }, "expectedOutput": 1 },
+    { "input": { "nums": [1,3,6,7,9,4,10,5,6] }, "expectedOutput": 6 },
+    { "input": { "nums": [2,2] }, "expectedOutput": 1 },
+    { "input": { "nums": [3,10,2,1,20] }, "expectedOutput": 3 },
+    { "input": { "nums": [50,3,10,7,40,80] }, "expectedOutput": 4 }
+  ],
+  "inputFormat": "Single line with n space-separated integers representing the array.",
+  "outputFormat": "Print the length of the longest increasing subsequence.",
+  "sampleIO": { "input": "10 9 2 5 3 7 101 18", "output": "4" },
+  "similar": ["24", "26"]
+},
+{
+  "id": "12",
+  "title": "Valid Parentheses",
+  "difficulty": "Easy",
+  "tags": ["stack", "string"],
+  "description": "Given a string containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.",
+  "constraints": "1 <= s.length <= 10^4, s consists of parentheses only",
+  "sampleCases": [
+    { "input": { "s": "()" }, "expectedOutput": true },
+    { "input": { "s": "()[]{}" }, "expectedOutput": true }
+  ],
+  "hiddenCases": [
+    { "input": { "s": "(]" }, "expectedOutput": false },
+    { "input": { "s": "([)]" }, "expectedOutput": false },
+    { "input": { "s": "{" }, "expectedOutput": false },
+    { "input": { "s": "}" }, "expectedOutput": false },
+    { "input": { "s": "([]{})" }, "expectedOutput": true }
+  ],
+  "inputFormat": "Single line containing the string s.",
+  "outputFormat": "Print true if valid, else false.",
+  "sampleIO": { "input": "()[]{}", "output": "true" },
+  "similar": ["8", "27"]
+},
+{
+  "id": "13",
+  "title": "Word Ladder",
+  "difficulty": "Hard",
+  "tags": ["graph", "breadth-first-search"],
+  "description": "Given two words (beginWord and endWord), and a dictionary, return the length of shortest transformation sequence from beginWord to endWord.",
+  "constraints": "1 <= wordList.length <= 5000, 1 <= wordList[i].length <= 10",
+  "sampleCases": [
+    { "input": { "beginWord": "hit", "endWord": "cog", "wordList": ["hot","dot","dog","lot","log","cog"] }, "expectedOutput": 5 },
+    { "input": { "beginWord": "hit", "endWord": "cog", "wordList": ["hot","dot","dog","lot","log"] }, "expectedOutput": 0 }
+  ],
+  "hiddenCases": [
+    { "input": { "beginWord": "a", "endWord": "c", "wordList": ["a","b","c"] }, "expectedOutput": 2 },
+    { "input": { "beginWord": "lost", "endWord": "cost", "wordList": ["lost","cost","most"] }, "expectedOutput": 2 },
+    { "input": { "beginWord": "hit", "endWord": "hot", "wordList": ["hot"] }, "expectedOutput": 2 },
+    { "input": { "beginWord": "abc", "endWord": "xyz", "wordList": ["abc","abx","xyz"] }, "expectedOutput": 3 },
+    { "input": { "beginWord": "aaa", "endWord": "bbb", "wordList": ["aab","abb","bbb"] }, "expectedOutput": 4 }
+  ],
+  "inputFormat": "First line: beginWord. Second line: endWord. Third line: space-separated wordList.",
+  "outputFormat": "Print the length of shortest transformation sequence, 0 if impossible.",
+  "sampleIO": { "input": "hit\ncog\nhot dot dog lot log cog", "output": "5" },
+  "similar": ["14", "27"]
+},
+{
+  "id": "14",
+  "title": "Evaluate Reverse Polish Notation",
+  "difficulty": "Medium",
+  "tags": ["stack", "array"],
+  "description": "Evaluate the value of an arithmetic expression in Reverse Polish Notation.",
+  "constraints": "1 <= tokens.length <= 10^4, tokens[i] is integer or '+','-','*','/'",
+  "sampleCases": [
+    { "input": { "tokens": ["2","1","+","3","*"] }, "expectedOutput": 9 },
+    { "input": { "tokens": ["4","13","5","/","+"] }, "expectedOutput": 6 }
+  ],
+  "hiddenCases": [
+    { "input": { "tokens": ["10","6","9","3","+","-11","*","/","*","17","+","5","+"] }, "expectedOutput": 22 },
+    { "input": { "tokens": ["3","-4","+"] }, "expectedOutput": -1 },
+    { "input": { "tokens": ["5","1","2","+","4","*","+","3","-"] }, "expectedOutput": 14 },
+    { "input": { "tokens": ["2","3","*"] }, "expectedOutput": 6 },
+    { "input": { "tokens": ["4","2","/"] }, "expectedOutput": 2 }
+  ],
+  "inputFormat": "Single line with space-separated tokens.",
+  "outputFormat": "Print the integer result after evaluating the expression.",
+  "sampleIO": { "input": "2 1 + 3 *", "output": "9" },
+  "similar": ["24", "26"]
+},
+
+{
+  "id": "15",
+  "title": "Min Stack",
+  "difficulty": "Easy",
+  "tags": ["stack", "design"],
+  "description": "Design a stack that supports push, pop, top, and retrieving the minimum element in constant time.",
+  "constraints": "Methods will be called at most 3 * 10^4 times",
+  "sampleCases": [
+    { "input": ["MinStack","push","push","push","getMin","pop","top","getMin"], "expectedOutput": [null,null,null,null, -3,null,0,-2] },
+    { "input": ["MinStack","push","getMin","push","getMin"], "expectedOutput": [null,null,0,null, -1] }
+  ],
+  "hiddenCases": [
+    { "input": ["MinStack","push","push","getMin","pop","getMin"], "expectedOutput": [null,null,null,-2,null,0] },
+    { "input": ["MinStack","push","push","pop","getMin"], "expectedOutput": [null,null,null,null,1] },
+    { "input": ["MinStack","push","getMin","push","pop","getMin"], "expectedOutput": [null,null,2,null,null,2] },
+    { "input": ["MinStack","push","push","push","pop","getMin"], "expectedOutput": [null,null,null,null,null,1] },
+    { "input": ["MinStack","push","push","getMin"], "expectedOutput": [null,null,null,-1] }
+  ],
+  "inputFormat": "Operations are provided as an array. Each operation has an optional integer argument.",
+  "outputFormat": "For each operation print the return value (null for push/pop).",
+  "sampleIO": { "input": "MinStack, push -2, push 0, push -3, getMin, pop, top, getMin", "output": "null,null,null,null,-3,null,0,-2" },
+  "similar": ["4","16"]
+},
+{
+  "id": "16",
+  "title": "Binary Tree Level Order Traversal",
+  "difficulty": "Easy",
+  "tags": ["tree", "breadth-first-search"],
+  "description": "Return the level order traversal of a binary tree's nodes' values.",
+  "constraints": "Number of nodes in the tree is in the range [0, 2000]",
+  "sampleCases": [
+    { "input": { "root": [3,9,20,null,null,15,7] }, "expectedOutput": [[3],[9,20],[15,7]] },
+    { "input": { "root": [1] }, "expectedOutput": [[1]] }
+  ],
+  "hiddenCases": [
+    { "input": { "root": [] }, "expectedOutput": [] },
+    { "input": { "root": [1,2,3,4,5,null,6] }, "expectedOutput": [[1],[2,3],[4,5,6]] },
+    { "input": { "root": [1,2,null,3] }, "expectedOutput": [[1],[2],[3]] },
+    { "input": { "root": [1,null,2,3] }, "expectedOutput": [[1],[2],[3]] },
+    { "input": { "root": [1,2,3,4,5,6,7] }, "expectedOutput": [[1],[2,3],[4,5,6,7]] }
+  ],
+  "inputFormat": "Tree is represented as level-order array with nulls for missing nodes.",
+  "outputFormat": "Print the list of lists of node values level by level.",
+  "sampleIO": { "input": "3 9 20 null null 15 7", "output": "[[3],[9,20],[15,7]]" },
+  "similar": ["4","27"]
+},
+{
+  "id": "17",
+  "title": "Kth Largest Element in an Array",
+  "difficulty": "Medium",
+  "tags": ["array", "heap"],
+  "description": "Find the kth largest element in an unsorted array.",
+  "constraints": "1 <= k <= nums.length <= 10^4, -10^4 <= nums[i] <= 10^4",
+  "sampleCases": [
+    { "input": { "nums": [3,2,1,5,6,4], "k": 2 }, "expectedOutput": 5 },
+    { "input": { "nums": [3,2,3,1,2,4,5,5,6], "k": 4 }, "expectedOutput": 4 }
+  ],
+  "hiddenCases": [
+    { "input": { "nums": [1], "k": 1 }, "expectedOutput": 1 },
+    { "input": { "nums": [2,1], "k": 1 }, "expectedOutput": 2 },
+    { "input": { "nums": [1,2,3,4,5,6], "k": 6 }, "expectedOutput": 1 },
+    { "input": { "nums": [5,3,2,4,1], "k": 3 }, "expectedOutput": 3 },
+    { "input": { "nums": [7,6,5,4,3,2,1], "k": 5 }, "expectedOutput": 3 }
+  ],
+  "inputFormat": "First line: n — number of elements. Second line: n space-separated integers. Third line: k.",
+  "outputFormat": "Print the kth largest element.",
+  "sampleIO": { "input": "6\n3 2 1 5 6 4\n2", "output": "5" },
+  "similar": ["3","10"]
+},
+{
+  "id": "18",
+  "title": "Top K Frequent Elements",
+  "difficulty": "Medium",
+  "tags": ["array", "hashmap", "heap"],
+  "description": "Return the k most frequent elements in the array.",
+  "constraints": "1 <= nums.length <= 10^5, k is in range [1, number of unique elements]",
+  "sampleCases": [
+    { "input": { "nums": [1,1,1,2,2,3], "k": 2 }, "expectedOutput": [1,2] },
+    { "input": { "nums": [1], "k": 1 }, "expectedOutput": [1] }
+  ],
+  "hiddenCases": [
+    { "input": { "nums": [4,4,4,4,6,6,2,2,2,1], "k": 2 }, "expectedOutput": [4,2] },
+    { "input": { "nums": [1,2,3,4,4,3,2,1], "k": 2 }, "expectedOutput": [1,2] },
+    { "input": { "nums": [5,5,5,1,1,2,2], "k": 3 }, "expectedOutput": [5,1,2] },
+    { "input": { "nums": [1,2], "k": 2 }, "expectedOutput": [1,2] },
+    { "input": { "nums": [3,0,1,0], "k": 1 }, "expectedOutput": [0] }
+  ],
+  "inputFormat": "First line: n — number of elements. Second line: n space-separated integers. Third line: k.",
+  "outputFormat": "Print the k most frequent elements as a JSON array.",
+  "sampleIO": { "input": "6\n1 1 1 2 2 3\n2", "output": "[1,2]" },
+  "similar": ["3","17"]
+},
+{
+  "id": "19",
+  "title": "Course Schedule",
+  "difficulty": "Medium",
+  "tags": ["graph", "topological-sort"],
+  "description": "Determine if you can finish all courses given prerequisites as pairs.",
+  "constraints": "1 <= numCourses <= 10^5, 0 <= prerequisites.length <= 5000",
+  "sampleCases": [
+    { "input": { "numCourses": 2, "prerequisites": [[1,0]] }, "expectedOutput": true },
+    { "input": { "numCourses": 2, "prerequisites": [[1,0],[0,1]] }, "expectedOutput": false }
+  ],
+  "hiddenCases": [
+    { "input": { "numCourses": 3, "prerequisites": [[0,1],[0,2],[1,2]] }, "expectedOutput": true },
+    { "input": { "numCourses": 4, "prerequisites": [[1,0],[2,1],[3,2],[1,3]] }, "expectedOutput": false },
+    { "input": { "numCourses": 1, "prerequisites": [] }, "expectedOutput": true },
+    { "input": { "numCourses": 5, "prerequisites": [[0,1],[2,3]] }, "expectedOutput": true },
+    { "input": { "numCourses": 2, "prerequisites": [[0,1],[1,0]] }, "expectedOutput": false }
+  ],
+  "inputFormat": "First line: numCourses. Second line: space-separated pairs representing prerequisites.",
+  "outputFormat": "Print true if possible to finish all courses, else false.",
+  "sampleIO": { "input": "2\n1 0", "output": "true" },
+  "similar": ["14","27"]
+},
+
+{
+  "id": "20",
+  "title": "Number of Islands",
+  "difficulty": "Medium",
+  "tags": ["matrix", "dfs", "bfs"],
+  "description": "Given a 2D grid map of '1's (land) and '0's (water), count the number of islands.",
+  "constraints": "m == grid.length, n == grid[i].length, 1 <= m, n <= 300",
+  "sampleCases": [
+    { "input": { "grid": [["1","1","0","0","0"],["1","1","0","0","0"],["0","0","1","0","0"],["0","0","0","1","1"]] }, "expectedOutput": 3 },
+    { "input": { "grid": [["1","1","1"],["0","1","0"],["1","1","1"]] }, "expectedOutput": 1 }
+  ],
+  "hiddenCases": [
+    { "input": { "grid": [["1"]] }, "expectedOutput": 1 },
+    { "input": { "grid": [["0"]] }, "expectedOutput": 0 },
+    { "input": { "grid": [["1","0"],["0","1"]] }, "expectedOutput": 2 },
+    { "input": { "grid": [["1","1","0"],["0","1","1"],["1","0","0"]] }, "expectedOutput": 2 },
+    { "input": { "grid": [["0","0","0"],["0","0","0"],["0","0","0"]] }, "expectedOutput": 0 }
+  ],
+  "inputFormat": "First line: m and n. Next m lines contain n space-separated characters '1' or '0'.",
+  "outputFormat": "Print the number of islands.",
+  "sampleIO": { "input": "4 5\n1 1 0 0 0\n1 1 0 0 0\n0 0 1 0 0\n0 0 0 1 1", "output": "3" },
+  "similar": ["21","26"]
+},
+{
+  "id": "21",
+  "title": "Word Break",
+  "difficulty": "Medium",
+  "tags": ["string", "dynamic-programming", "trie"],
+  "description": "Given a string s and a dictionary of words, determine if s can be segmented into a space-separated sequence of dictionary words.",
+  "constraints": "1 <= s.length <= 300, 1 <= wordDict.length <= 1000",
+  "sampleCases": [
+    { "input": { "s": "leetcode", "wordDict": ["leet","code"] }, "expectedOutput": true },
+    { "input": { "s": "applepenapple", "wordDict": ["apple","pen"] }, "expectedOutput": true }
+  ],
+  "hiddenCases": [
+    { "input": { "s": "catsandog", "wordDict": ["cats","dog","sand","and","cat"] }, "expectedOutput": false },
+    { "input": { "s": "abcd", "wordDict": ["a","abc","b","cd"] }, "expectedOutput": true },
+    { "input": { "s": "pineapplepenapple", "wordDict": ["apple","pen","applepen","pine","pineapple"] }, "expectedOutput": true },
+    { "input": { "s": "catsanddog", "wordDict": ["cat","cats","and","sand","dog"] }, "expectedOutput": true },
+    { "input": { "s": "aaaaaaa", "wordDict": ["aaaa","aaa"] }, "expectedOutput": true }
+  ],
+  "inputFormat": "First line: string s. Second line: space-separated words of the dictionary.",
+  "outputFormat": "Print true if segmentation possible, else false.",
+  "sampleIO": { "input": "leetcode\nleet code", "output": "true" },
+  "similar": ["13","22"]
+},
+{
+  "id": "22",
+  "title": "Longest Palindromic Substring",
+  "difficulty": "Medium",
+  "tags": ["string", "dynamic-programming"],
+  "description": "Given a string s, return the longest palindromic substring in s.",
+  "constraints": "1 <= s.length <= 1000",
+  "sampleCases": [
+    { "input": { "s": "babad" }, "expectedOutput": "bab" },
+    { "input": { "s": "cbbd" }, "expectedOutput": "bb" }
+  ],
+  "hiddenCases": [
+    { "input": { "s": "a" }, "expectedOutput": "a" },
+    { "input": { "s": "ac" }, "expectedOutput": "a" },
+    { "input": { "s": "forgeeksskeegfor" }, "expectedOutput": "geeksskeeg" },
+    { "input": { "s": "abacdfgdcaba" }, "expectedOutput": "aba" },
+    { "input": { "s": "abacdedcaba" }, "expectedOutput": "abacdedcaba" }
+  ],
+  "inputFormat": "Single line containing the string s.",
+  "outputFormat": "Print the longest palindromic substring.",
+  "sampleIO": { "input": "babad", "output": "bab" },
+  "similar": ["8","21"]
+},
+{
+  "id": "23",
+  "title": "Decode Ways",
+  "difficulty": "Medium",
+  "tags": ["string", "dynamic-programming"],
+  "description": "Given a string containing digits, return the total number of ways to decode it following mapping 'A'->1 ... 'Z'->26.",
+  "constraints": "1 <= s.length <= 100, s contains digits only",
+  "sampleCases": [
+    { "input": { "s": "12" }, "expectedOutput": 2 },
+    { "input": { "s": "226" }, "expectedOutput": 3 }
+  ],
+  "hiddenCases": [
+    { "input": { "s": "0" }, "expectedOutput": 0 },
+    { "input": { "s": "06" }, "expectedOutput": 0 },
+    { "input": { "s": "10" }, "expectedOutput": 1 },
+    { "input": { "s": "27" }, "expectedOutput": 1 },
+    { "input": { "s": "11106" }, "expectedOutput": 2 }
+  ],
+  "inputFormat": "Single line containing string s.",
+  "outputFormat": "Print the total number of decoding ways.",
+  "sampleIO": { "input": "12", "output": "2" },
+  "similar": ["24","26"]
+},
+{
+  "id": "24",
+  "title": "Coin Change",
+  "difficulty": "Medium",
+  "tags": ["dynamic-programming", "greedy"],
+  "description": "Given coins of different denominations and a total amount, return the fewest number of coins needed to make up that amount.",
+  "constraints": "0 <= amount <= 10^4, 1 <= coins.length <= 12, 1 <= coins[i] <= 2^31 - 1",
+  "sampleCases": [
+    { "input": { "coins": [1,2,5], "amount": 11 }, "expectedOutput": 3 },
+    { "input": { "coins": [2], "amount": 3 }, "expectedOutput": -1 }
+  ],
+  "hiddenCases": [
+    { "input": { "coins": [1], "amount": 0 }, "expectedOutput": 0 },
+    { "input": { "coins": [1,2,5], "amount": 100 }, "expectedOutput": 20 },
+    { "input": { "coins": [186,419,83,408], "amount": 6249 }, "expectedOutput": 20 },
+    { "input": { "coins": [1,5,10,25], "amount": 63 }, "expectedOutput": 6 },
+    { "input": { "coins": [3,7], "amount": 14 }, "expectedOutput": 2 }
+  ],
+  "inputFormat": "First line: n — number of coins. Second line: n space-separated coin values. Third line: amount.",
+  "outputFormat": "Print the minimum number of coins to make up the amount or -1 if impossible.",
+  "sampleIO": { "input": "3\n1 2 5\n11", "output": "3" },
+  "similar": ["3","18"]
+},
+{
+  "id": "25",
+  "title": "Merge Intervals",
+  "difficulty": "Medium",
+  "tags": ["array", "sorting"],
+  "description": "Given a collection of intervals, merge all overlapping intervals.",
+  "constraints": "0 <= intervals.length <= 10^4, intervals[i].length == 2, 0 <= start <= end <= 10^4",
+  "sampleCases": [
+    { "input": { "intervals": [[1,3],[2,6],[8,10],[15,18]] }, "expectedOutput": [[1,6],[8,10],[15,18]] },
+    { "input": { "intervals": [[1,4],[4,5]] }, "expectedOutput": [[1,5]] }
+  ],
+  "hiddenCases": [
+    { "input": { "intervals": [] }, "expectedOutput": [] },
+    { "input": { "intervals": [[1,4]] }, "expectedOutput": [[1,4]] },
+    { "input": { "intervals": [[1,4],[0,2],[3,5]] }, "expectedOutput": [[0,5]] },
+    { "input": { "intervals": [[1,4],[2,3]] }, "expectedOutput": [[1,4]] },
+    { "input": { "intervals": [[1,4],[5,6]] }, "expectedOutput": [[1,4],[5,6]] }
+  ],
+  "inputFormat": "First line: n — number of intervals. Next n lines: two space-separated integers per interval.",
+  "outputFormat": "Print the merged intervals as a list of lists.",
+  "sampleIO": { "input": "4\n1 3\n2 6\n8 10\n15 18", "output": "[[1,6],[8,10],[15,18]]" },
+  "similar": ["3","17"]
+},
+{
+  "id": "26",
+  "title": "Jump Game",
+  "difficulty": "Medium",
+  "tags": ["array", "greedy", "dynamic-programming"],
+  "description": "Given an array of non-negative integers, determine if you can reach the last index starting from the first index. Each element represents your maximum jump length at that position.",
+  "constraints": "1 <= nums.length <= 10^4, 0 <= nums[i] <= 10^5",
+  "sampleCases": [
+    { "input": { "nums": [2,3,1,1,4] }, "expectedOutput": true },
+    { "input": { "nums": [3,2,1,0,4] }, "expectedOutput": false }
+  ],
+  "hiddenCases": [
+    { "input": { "nums": [0] }, "expectedOutput": true },
+    { "input": { "nums": [2,0,0] }, "expectedOutput": true },
+    { "input": { "nums": [1,2,3] }, "expectedOutput": true },
+    { "input": { "nums": [1,0,1] }, "expectedOutput": false },
+    { "input": { "nums": [2,5,0,0] }, "expectedOutput": true }
+  ],
+  "inputFormat": "First line: n — number of elements. Second line: n space-separated integers.",
+  "outputFormat": "Print true if the last index is reachable, else false.",
+  "sampleIO": { "input": "5\n2 3 1 1 4", "output": "true" },
+  "similar": ["3","17"]
+},
+{
+  "id": "27",
+  "title": "Serialize and Deserialize Binary Tree",
+  "difficulty": "Hard",
+  "tags": ["tree", "design", "dfs", "bfs"],
+  "description": "Design an algorithm to serialize and deserialize a binary tree. Serialization converts a tree to a string, and deserialization converts it back to the original tree.",
+  "constraints": "Number of nodes in the tree is in the range [0, 10^4]",
+  "sampleCases": [
+    { "input": { "root": [1,2,3,null,null,4,5] }, "expectedOutput": "[1,2,3,null,null,4,5]" },
+    { "input": { "root": [] }, "expectedOutput": "[]" }
+  ],
+  "hiddenCases": [
+    { "input": { "root": [1] }, "expectedOutput": "[1]" },
+    { "input": { "root": [1,2] }, "expectedOutput": "[1,2]" },
+    { "input": { "root": [1,null,2] }, "expectedOutput": "[1,null,2]" },
+    { "input": { "root": [1,2,3,4,5,6,7] }, "expectedOutput": "[1,2,3,4,5,6,7]" },
+    { "input": { "root": [5,3,6,2,4,null,null,1] }, "expectedOutput": "[5,3,6,2,4,null,null,1]" }
+  ],
+  "inputFormat": "Tree is represented as level-order array with nulls for missing nodes.",
+  "outputFormat": "Print the serialized tree string.",
+  "sampleIO": { "input": "1 2 3 null null 4 5", "output": "[1,2,3,null,null,4,5]" },
+  "similar": ["16","19"]
+},
+{
+  "id": "28",
+  "title": "LRU Cache",
+  "difficulty": "Hard",
+  "tags": ["design", "hashmap", "linked-list"],
+  "description": "Design a data structure that follows the constraints of a Least Recently Used (LRU) cache with get and put operations in O(1) time complexity.",
+  "constraints": "1 <= capacity <= 3000, 0 <= key <= 10^4, 0 <= value <= 10^5",
+  "sampleCases": [
+    { "input": ["LRUCache","put","put","get","put","get","put","get","get","get"], "expectedOutput": [null,null,null,1,null,-1,null,-1,3,4] },
+    { "input": ["LRUCache","put","get","put","get","get"], "expectedOutput": [null,null,1,null,-1,2] }
+  ],
+  "hiddenCases": [
+    { "input": ["LRUCache","get"], "expectedOutput": [ -1 ] },
+    { "input": ["LRUCache","put","get","put","get","get","put","get"], "expectedOutput": [null,null,1,null,-1,2,null,3] },
+    { "input": ["LRUCache","put","put","get","get","put","get"], "expectedOutput": [null,null,null,1,2,null,3] },
+    { "input": ["LRUCache","put","put","put","get","put","get"], "expectedOutput": [null,null,null,null,2,null,3] },
+    { "input": ["LRUCache","put","get","get"], "expectedOutput": [null,1,1,-1] }
+  ],
+  "inputFormat": "Operations are given as an array. Some operations have integer arguments.",
+  "outputFormat": "Return output for each operation (null for put).",
+  "sampleIO": { "input": "LRUCache, put 1 1, put 2 2, get 1, put 3 3, get 2, put 4 4, get 1, get 3, get 4", "output": "null,null,null,1,null,-1,null,-1,3,4" },
+  "similar": ["15","27"]
+},
+{
+  "id": "29",
+  "title": "Minimum Window Substring",
+  "difficulty": "Hard",
+  "tags": ["string", "sliding-window", "hashmap"],
+  "description": "Given strings s and t, find the minimum window in s which will contain all characters in t.",
+  "constraints": "1 <= s.length, t.length <= 10^5, s and t consist of English letters",
+  "sampleCases": [
+    { "input": { "s": "ADOBECODEBANC", "t": "ABC" }, "expectedOutput": "BANC" },
+    { "input": { "s": "a", "t": "a" }, "expectedOutput": "a" }
+  ],
+  "hiddenCases": [
+    { "input": { "s": "a", "t": "aa" }, "expectedOutput": "" },
+    { "input": { "s": "aa", "t": "aa" }, "expectedOutput": "aa" },
+    { "input": { "s": "ab", "t": "b" }, "expectedOutput": "b" },
+    { "input": { "s": "bba", "t": "ab" }, "expectedOutput": "ba" },
+    { "input": { "s": "acbbaca", "t": "aba" }, "expectedOutput": "baca" }
+  ],
+  "inputFormat": "First line: string s. Second line: string t.",
+  "outputFormat": "Print the minimum window substring containing all characters from t.",
+  "sampleIO": { "input": "ADOBECODEBANC\nABC", "output": "BANC" },
+  "similar": ["22","23"]
+},
+{
+  "id": "30",
+  "title": "Alien Dictionary",
+  "difficulty": "Hard",
+  "tags": ["graph", "topological-sort", "string"],
+  "description": "Given a sorted dictionary of an alien language, return the order of characters in the language.",
+  "constraints": "1 <= words.length <= 100, 1 <= words[i].length <= 100",
+  "sampleCases": [
+    { "input": { "words": ["wrt","wrf","er","ett","rftt"] }, "expectedOutput": "wertf" },
+    { "input": { "words": ["z","x"] }, "expectedOutput": "zx" }
+  ],
+  "hiddenCases": [
+    { "input": { "words": ["z","x","z"] }, "expectedOutput": "" },
+    { "input": { "words": ["abc","ab"] }, "expectedOutput": "" },
+    { "input": { "words": ["baa","abcd","abca","cab","cad"] }, "expectedOutput": "bdac" },
+    { "input": { "words": ["caa","aaa","aab"] }, "expectedOutput": "cab" },
+    { "input": { "words": ["a","b","c"] }, "expectedOutput": "abc" }
+  ],
+  "inputFormat": "First line: n — number of words. Next n lines: one word per line.",
+  "outputFormat": "Print the order of characters as a string. If invalid, print empty string.",
+  "sampleIO": { "input": "5\nwrt\nwrf\ner\nett\nrftt", "output": "wertf" },
+  "similar": ["19","14"]
+},
+ 
+  {
+"id": "31",
+"title": "Subarray Sum Equals K",
+"difficulty": "Medium",
+"tags": [
+"array",
+"hashmap",
+"prefix-sum"
+],
+"description": "Given an array of integers nums and an integer k, return the total number of continuous subarrays whose sum equals k.",
+"constraints": "1 <= nums.length <= 2 * 10^5, -1000 <= nums[i] <= 1000, -10^7 <= k <= 10^7",
+"sampleCases": [
+{
+"input": { "nums": [1, 1, 1], "k": 2 },
+"expectedOutput": 2
+},
+{
+"input": { "nums": [1, 2, 3], "k": 3 },
+"expectedOutput": 2
+}
+],
+"hiddenCases": [
+{ "input": { "nums": [0,0,0,0], "k": 0 }, "expectedOutput": 10 },
+{ "input": { "nums": [3,4,7,2,-3,1,4,2], "k": 7 }, "expectedOutput": 4 },
+{ "input": { "nums": [1], "k": 0 }, "expectedOutput": 0 },
+{ "input": { "nums": [-1,-1,1], "k": -1 }, "expectedOutput": 2 },
+{ "input": { "nums": [1000], "k": 1000 }, "expectedOutput": 1000 },
+{ "input": { "nums": [1,2,1,2,1], "k": 3 }, "expectedOutput": 4 }
+],
+"inputFormat": "First line contains integer T — number of test cases. Each test case consists of two lines:\n1) an integer n — number of elements in the array nums.\n2) n space-separated integers — the array nums followed by an integer k on the same line or the next line (both formats acceptable).\n(Example for single test case: n on line 1, nums on line 2, k on line 3.)",
+"outputFormat": "For each test case print a single integer — the number of continuous subarrays whose sum equals k, on its own line.",
+"sampleIO": {
+"input": "2\n3\n1 1 1\n2\n3\n1 2 3\n3",
+"output": "2\n2"
+},
+"similar": ["5", "11", "24", "39"]
+},
+{
+"id": "32",
+"title": "Permutations",
+"difficulty": "Medium",
+"tags": [
+"backtracking",
+"array"
+],
+"description": "Given an array nums of distinct integers, return all possible permutations. You can return the answer in any order.",
+"constraints": "1 <= nums.length <= 8, -10^5 <= nums[i] <= 10^5, all elements are distinct",
+"sampleCases": [
+{
+"input": { "nums": [1,2,3] },
+"expectedOutput": [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+},
+{
+"input": { "nums": [0,1] },
+"expectedOutput": [[0,1],[1,0]]
+}
+],
+"hiddenCases": [
+{ "input": { "nums": [1] }, "expectedOutput": [[1]] },
+{ "input": { "nums": [1,2,3,4] }, "expectedOutput": "24 permutations" },
+{ "input": { "nums": [-1,0,1] }, "expectedOutput": [[-1,0,1],[-1,1,0],[0,-1,1],[0,1,-1],[1,-1,0],[1,0,-1]] },
+{ "input": { "nums": [2,1,3] }, "expectedOutput": [[2,1,3],[2,3,1],[1,2,3],[1,3,2],[3,2,1],[3,1,2]] }
+],
+"inputFormat": "First line contains integer T — number of test cases. Each test case consists of two lines:\n1) an integer n — number of elements in nums.\n2) n space-separated integers — the array nums.\n(If T is 1 you may omit the first line.)",
+"outputFormat": "For each test case print a JSON-like 2D array containing all permutations (order of permutations doesn't matter) on its own line, e.g. [[1,2,3],[1,3,2],...].",
+"sampleIO": {
+"input": "2\n3\n1 2 3\n2\n0 1",
+"output": "[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]\n[[0,1],[1,0]]"
+},
+"similar": ["12", "14", "36"]
+},
+{
+"id": "33",
+"title": "Rotate Image",
+"difficulty": "Medium",
+"tags": [
+"matrix",
+"in-place"
+],
+"description": "You are given an n x n 2D matrix representing an image, rotate the image by 90 degrees (clockwise) in-place.",
+"constraints": "n == matrix.length == matrix[i].length, 1 <= n <= 20, -10^9 <= matrix[i][j] <= 10^9",
+"sampleCases": [
+{
+"input": { "matrix": [[1,2,3],[4,5,6],[7,8,9]] },
+"expectedOutput": [[7,4,1],[8,5,2],[9,6,3]]
+},
+{
+"input": { "matrix": [[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]] },
+"expectedOutput": [[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]
+}
+],
+"hiddenCases": [
+{ "input": { "matrix": [[1]] }, "expectedOutput": [[1]] },
+{ "input": { "matrix": [[1,2],[3,4]] }, "expectedOutput": [[3,1],[4,2]] },
+{ "input": { "matrix": [[-1,0],[0,1]] }, "expectedOutput": [[0,-1],[1,0]] }
+],
+"inputFormat": "First line contains integer T — number of test cases. Each test case consists of:\n1) an integer n — size of the n x n matrix.\n2) n lines each containing n space-separated integers — the matrix rows.\n(If T is 1 you may omit the first line.)",
+"outputFormat": "For each test case print the rotated matrix as a JSON-like 2D array on its own line, e.g. [[7,4,1],[8,5,2],[9,6,3]].",
+"sampleIO": {
+"input": "2\n3\n1 2 3\n4 5 6\n7 8 9\n4\n5 1 9 11\n2 4 8 10\n13 3 6 7\n15 14 12 16",
+"output": "[[7,4,1],[8,5,2],[9,6,3]]\n[[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]"
+},
+"similar": ["10", "22", "34"]
+},
+{
+"id": "34",
+"title": "Set Matrix Zeroes",
+"difficulty": "Medium",
+"tags": [
+"matrix",
+"in-place"
+],
+"description": "Given an m x n matrix, if an element is 0, set its entire row and column to 0. Do it in-place.",
+"constraints": "m == matrix.length, n == matrix[0].length, 1 <= m, n <= 200, -10^9 <= matrix[i][j] <= 10^9",
+"sampleCases": [
+{
+"input": { "matrix": [[1,1,1],[1,0,1],[1,1,1]] },
+"expectedOutput": [[1,0,1],[0,0,0],[1,0,1]]
+},
+{
+"input": { "matrix": [[0,1,2,0],[3,4,5,2],[1,3,1,5]] },
+"expectedOutput": [[0,0,0,0],[0,4,5,0],[0,3,1,0]]
+}
+],
+"hiddenCases": [
+{ "input": { "matrix": [[0]] }, "expectedOutput": [[0]] },
+{ "input": { "matrix": [[1,2],[3,4]] }, "expectedOutput": [[1,2],[3,4]] },
+{ "input": { "matrix": [[1,0,3]] }, "expectedOutput": [[0,0,0]] },
+{ "input": { "matrix": [[1],[0],[2]] }, "expectedOutput": [[0],[0],[0]] }
+],
+"inputFormat": "First line contains integer T — number of test cases. Each test case consists of:\n1) two integers m and n — the matrix dimensions.\n2) m lines each containing n space-separated integers — the matrix rows.",
+"outputFormat": "For each test case print the modified matrix as a JSON-like 2D array on its own line.",
+"sampleIO": {
+"input": "2\n3 3\n1 1 1\n1 0 1\n1 1 1\n3 4\n0 1 2 0\n3 4 5 2\n1 3 1 5",
+"output": "[[1,0,1],[0,0,0],[1,0,1]]\n[[0,0,0,0],[0,4,5,0],[0,3,1,0]]"
+},
+"similar": ["33", "22", "40"]
+},
+{
+  "id": "35",
+  "title": "Move Zeroes",
+  "difficulty": "Easy",
+  "tags": ["array", "two-pointers"],
+  "description": "Given an integer array nums, move all 0's to the end of it while maintaining the relative order of the non-zero elements.",
+  "constraints": "1 <= nums.length <= 10^5, -10^9 <= nums[i] <= 10^9",
+  "sampleCases": [
+    {
+      "input": { "nums": [0,1,0,3,12] },
+      "expectedOutput": [1,3,12,0,0]
+    },
+    {
+      "input": { "nums": [0] },
+      "expectedOutput": [0]
+    }
+  ],
+  "hiddenCases": [
+    { "input": { "nums": [1,0,2,0,3] }, "expectedOutput": [1,2,3,0,0] },
+    { "input": { "nums": [0,0,1] }, "expectedOutput": [1,0,0] }
+  ],
+  "inputFormat": "First line contains integer T — number of test cases. Each test case contains two lines: 1) an integer n — number of elements in the array nums, 2) n space-separated integers — the array nums.",
+  "outputFormat": "For each test case, print the modified array after moving zeroes as a JSON-like array on a single line.",
+  "sampleIO": { "input": "2\n5\n0 1 0 3 12\n1\n0", "output": "[1,3,12,0,0]\n[0]" },
+  "similar": ["5", "24", "30"]
+},
+{
+"id": "36",
+"title": "Combination Sum",
+"difficulty": "Medium",
+"tags": [
+"backtracking",
+"array"
+],
+"description": "Given an array of distinct integers candidates and a target integer target, return a list of all unique combinations of candidates where the chosen numbers sum to target. The same number may be chosen unlimited times.",
+"constraints": "1 <= candidates.length <= 30, 1 <= candidates[i] <= 200, 1 <= target <= 500",
+"sampleCases": [
+{
+"input": { "candidates": [2,3,6,7], "target": 7 },
+"expectedOutput": [[7],[2,2,3]]
+},
+{
+"input": { "candidates": [2,3,5], "target": 8 },
+"expectedOutput": [[2,2,2,2],[2,3,3],[3,5]]
+}
+],
+"hiddenCases": [
+{ "input": { "candidates": [7], "target": 14 }, "expectedOutput": [[7,7]] },
+{ "input": { "candidates": [2], "target": 1 }, "expectedOutput": [] },
+{ "input": { "candidates": [3,4,5], "target": 8 }, "expectedOutput": [[3,5]] },
+{ "input": { "candidates": [1,2], "target": 3 }, "expectedOutput": [[1,1,1],[1,2],[2,1]] }
+],
+"inputFormat": "First line contains integer T — number of test cases. Each test case consists of two lines:\n1) an integer n — number of candidates followed by n space-separated integers — the candidates.\n2) an integer target — the target sum.",
+"outputFormat": "For each test case print a JSON-like 2D array containing all unique combinations (order within combinations and order of combinations doesn't matter) on its own line.",
+"sampleIO": {
+"input": "2\n4\n2 3 6 7\n7\n3\n2 3 5\n8",
+"output": "[[7],[2,2,3]]\n[[2,2,2,2],[2,3,3],[3,5]]"
+},
+"similar": ["32", "35", "36"]
+},
+{
+"id": "37",
+"title": "Pow(x, n)",
+"difficulty": "Medium",
+"tags": [
+"math",
+"binary-exponentiation"
+],
+"description": "Implement pow(x, n), which calculates x raised to the power n (i.e., x^n).",
+"constraints": "-100.0 < x < 100.0, -2^31 <= n <= 2^31-1, x is a double, n is an integer",
+"sampleCases": [
+{
+"input": { "x": 2.00000, "n": 10 },
+"expectedOutput": 1024.00000
+},
+{
+"input": { "x": 2.10000, "n": 3 },
+"expectedOutput": 9.26100
+}
+],
+"hiddenCases": [
+{ "input": { "x": 2.00000, "n": -2 }, "expectedOutput": 0.25 },
+{ "input": { "x": 1.00000, "n": 2147483647 }, "expectedOutput": 1.0 },
+{ "input": { "x": 0.00001, "n": 2147483647 }, "expectedOutput": 0.0 },
+{ "input": { "x": -2.00000, "n": 3 }, "expectedOutput": -8.0 }
+],
+"inputFormat": "First line contains integer T — number of test cases. Each test case consists of one line with a floating point x and an integer n separated by space.",
+"outputFormat": "For each test case print a floating point number representing x raised to n rounded or formatted reasonably (e.g. 5 decimal places) on its own line.",
+"sampleIO": {
+"input": "2\n2.00000 10\n2.10000 3",
+"output": "1024.00000\n9.26100"
+},
+"similar": ["11", "39", "40"]
+},
+{
+"id": "38",
+"title": "Search Insert Position",
+"difficulty": "Easy",
+"tags": [
+"binary-search",
+"array"
+],
+"description": "Given a sorted array of distinct integers and a target value, return the index if the target is found. If not, return the index where it would be if inserted in order.",
+"constraints": "1 <= nums.length <= 10^4, -10^4 <= nums[i], target <= 10^4",
+"sampleCases": [
+{
+"input": { "nums": [1,3,5,6], "target": 5 },
+"expectedOutput": 2
+},
+{
+"input": { "nums": [1,3,5,6], "target": 2 },
+"expectedOutput": 1
+}
+],
+"hiddenCases": [
+{ "input": { "nums": [1,3,5,6], "target": 7 }, "expectedOutput": 4 },
+{ "input": { "nums": [1,3,5,6], "target": 0 }, "expectedOutput": 0 },
+{ "input": { "nums": [1], "target": 1 }, "expectedOutput": 0 }
+],
+"inputFormat": "First line contains integer T — number of test cases. Each test case consists of two lines:\n1) an integer n — number of elements in nums.\n2) n space-separated integers — the sorted array nums followed by the target on the next line or same line as per judge format.",
+"outputFormat": "For each test case print a single integer index on its own line.",
+"sampleIO": {
+"input": "2\n4\n1 3 5 6\n5\n4\n1 3 5 6\n2",
+"output": "2\n1"
+},
+"similar": ["1", "9", "10"]
+},
+{
+"id": "39",
+"title": "Merge k Sorted Lists",
+"difficulty": "Hard",
+"tags": [
+"linked-list",
+"heap",
+"divide-and-conquer"
+],
+"description": "Given an array of k linked-lists lists, each linked-list is sorted in ascending order. Merge all the linked-lists into one sorted linked-list and return it.",
+"constraints": "k == lists.length, 0 <= k <= 10^4, 0 <= lists[i].length <= 500, sum of all nodes <= 10^4",
+"sampleCases": [
+{
+"input": { "lists": [[1,4,5],[1,3,4],[2,6]] },
+"expectedOutput": [1,1,2,3,4,4,5,6]
+},
+{
+"input": { "lists": [] },
+"expectedOutput": []
+}
+],
+"hiddenCases": [
+{ "input": { "lists": [[-10,-9,-9,-3,-1,-1,0],[ -5 ] ] }, "expectedOutput": "merged sorted list" },
+{ "input": { "lists": [[1],[1],[1]] }, "expectedOutput": [1,1,1] },
+{ "input": { "lists": [[2,2,2],[1,1]] }, "expectedOutput": [1,1,2,2,2] }
+],
+"inputFormat": "First line contains integer T — number of test cases. Each test case consists of multiple lines:\n1) an integer k — number of linked lists.\n2) for each list, an integer n_i then n_i space-separated integers representing nodes of that list.\n(If T is 1 you may omit the first line.)",
+"outputFormat": "For each test case print the merged linked list as a JSON-like array on its own line, e.g. [1,1,2,3,4].",
+"sampleIO": {
+"input": "2\n3\n3 1 4 5\n3 1 3 4\n2 2 6\n0",
+"output": "[1,1,2,3,4,4,5,6]\n[]"
+},
+"similar": ["4", "28", "27"]
+},
+{
+"id": "40",
+"title": "Construct BT by Pre and Inorder Traversal",
+"difficulty": "Medium",
+"tags": [
+"tree",
+"divide-and-conquer"
+],
+"description": "Given two integer arrays preorder and inorder where preorder is the preorder traversal of a binary tree and inorder is the inorder traversal, construct and return the binary tree.",
+"constraints": "1 <= preorder.length <= 3000, inorder.length == preorder.length, -3000 <= node values <= 3000, all values are unique",
+"sampleCases": [
+{
+"input": { "preorder": [3,9,20,15,7], "inorder": [9,3,15,20,7] },
+"expectedOutput": [3,9,20,null,null,15,7]
+},
+{
+"input": { "preorder": [-1], "inorder": [-1] },
+"expectedOutput": [-1]
+}
+],
+"hiddenCases": [
+{ "input": { "preorder": [1,2], "inorder": [2,1] }, "expectedOutput": [1,2] },
+{ "input": { "preorder": [1], "inorder": [1] }, "expectedOutput": [1] },
+{ "input": { "preorder": [8,5,1,7,10,12], "inorder": [1,5,7,8,10,12] }, "expectedOutput": "constructed tree" }
+],
+"inputFormat": "First line contains integer T — number of test cases. Each test case consists of two lines:\n1) an integer n — number of nodes followed by n space-separated integers — the preorder traversal.\n2) n space-separated integers — the inorder traversal.",
+"outputFormat": "For each test case print the level-order representation of the constructed tree as a JSON-like array on its own line, using null for missing nodes, e.g. [3,9,20,null,null,15,7].",
+"sampleIO": {
+"input": "2\n5\n3 9 20 15 7\n9 3 15 20 7\n1\n-1\n-1",
+"output": "[3,9,20,null,null,15,7]\n[-1]"
+},
+"similar": ["16", "27", "11"]
+},
+{
+  "id": "41",
+  "title": "Rotate Array",
+  "difficulty": "Medium",
+  "tags": ["array"],
+  "description": "Given an array, rotate the array to the right by k steps, where k is non-negative.",
+  "constraints": "1 <= nums.length <= 10^5, -10^9 <= nums[i] <= 10^9, 0 <= k <= 10^5",
+  "sampleCases": [
+    {
+      "input": { "nums": [1,2,3,4,5,6,7], "k": 3 },
+      "expectedOutput": [5,6,7,1,2,3,4]
+    },
+    {
+      "input": { "nums": [-1,-100,3,99], "k": 2 },
+      "expectedOutput": [3,99,-1,-100]
+    }
+  ],
+  "hiddenCases": [
+    { "input": { "nums": [1,2], "k": 3 }, "expectedOutput": [2,1] },
+    { "input": { "nums": [1], "k": 0 }, "expectedOutput": [1] }
+  ],
+  "inputFormat": "First line contains integer T — number of test cases. Each test case contains two lines: 1) an integer n — size of array, 2) n space-separated integers followed by integer k on next line.",
+  "outputFormat": "For each test case, print the rotated array as a JSON-like array on its own line.",
+  "sampleIO": { "input": "2\n7\n1 2 3 4 5 6 7\n3\n4\n-1 -100 3 99\n2", "output": "[5,6,7,1,2,3,4]\n[3,99,-1,-100]" },
+  "similar": ["10", "12", "24"]
+},
+{
+"id": "42",
+"title": "Sort Colors",
+"difficulty": "Medium",
+"tags": [
+"two-pointers",
+"array"
+],
+"description": "Given an array nums with n objects colored red, white, or blue (represented by 0,1,2), sort them in-place so that objects of the same color are adjacent, using only constant extra space.",
+"constraints": "n == nums.length, 1 <= n <= 300, nums[i] is 0, 1, or 2",
+"sampleCases": [
+{
+"input": { "nums": [2,0,2,1,1,0] },
+"expectedOutput": [0,0,1,1,2,2]
+},
+{
+"input": { "nums": [2,0,1] },
+"expectedOutput": [0,1,2]
+}
+],
+"hiddenCases": [
+{ "input": { "nums": [0] }, "expectedOutput": [0] },
+{ "input": { "nums": [1,2,0] }, "expectedOutput": [0,1,2] },
+{ "input": { "nums": [2,2,2,1,1,0,0] }, "expectedOutput": [0,0,1,1,2,2,2] }
+],
+"inputFormat": "First line contains integer T — number of test cases. Each test case consists of two lines:\n1) integer n — number of elements.\n2) n space-separated integers — the array nums.",
+"outputFormat": "For each test case print the sorted array as a JSON-like array on its own line.",
+"sampleIO": {
+"input": "2\n6\n2 0 2 1 1 0\n3\n2 0 1",
+"output": "[0,0,1,1,2,2]\n[0,1,2]"
+},
+"similar": ["1", "11", "33"]
+},
+{
+"id": "43",
+"title": "House Robber",
+"difficulty": "Easy",
+"tags": [
+"dynamic-programming"
+],
+"description": "You are a robber planning to rob houses along a street. Each house has a certain amount of money. Adjacent houses cannot be robbed on the same night. Given a list of non-negative integers representing the amount of money of each house, determine the maximum amount you can rob.",
+"constraints": "1 <= nums.length <= 100, 0 <= nums[i] <= 400",
+"sampleCases": [
+{
+"input": { "nums": [1,2,3,1] },
+"expectedOutput": 4
+},
+{
+"input": { "nums": [2,7,9,3,1] },
+"expectedOutput": 12
+}
+],
+"hiddenCases": [
+{ "input": { "nums": [0] }, "expectedOutput": 0 },
+{ "input": { "nums": [100,1,1,100] }, "expectedOutput": 200 },
+{ "input": { "nums": [2,1,1,2] }, "expectedOutput": 4 }
+],
+"inputFormat": "First line contains integer T — number of test cases. Each test case consists of two lines:\n1) integer n — number of houses.\n2) n space-separated integers — the amounts in each house.",
+"outputFormat": "For each test case print a single integer — the maximum amount that can be robbed, on its own line.",
+"sampleIO": {
+"input": "2\n4\n1 2 3 1\n5\n2 7 9 3 1",
+"output": "4\n12"
+},
+"similar": ["5", "26", "44"]
+},
+{
+"id": "44",
+"title": "Product of Array Except Self",
+"difficulty": "Medium",
+"tags": [
+"array",
+"prefix-suffix"
+],
+"description": "Given an integer array nums, return an array answer such that answer[i] is equal to the product of all the elements of nums except nums[i]. Solve it without using division and in O(n) time.",
+"constraints": "2 <= nums.length <= 10^5, -30 <= nums[i] <= 30, product fits in 64-bit",
+"sampleCases": [
+{
+"input": { "nums": [1,2,3,4] },
+"expectedOutput": [24,12,8,6]
+},
+{
+"input": { "nums": [-1,1,0,-3,3] },
+"expectedOutput": [0,0,9,0,0]
+}
+],
+"hiddenCases": [
+{ "input": { "nums": [2,3] }, "expectedOutput": [3,2] },
+{ "input": { "nums": [0,0] }, "expectedOutput": [0,0] },
+{ "input": { "nums": [5, -2, 3] }, "expectedOutput": [-6,15,-10] }
+],
+"inputFormat": "First line contains integer T — number of test cases. Each test case consists of two lines:\n1) integer n — size of array.\n2) n space-separated integers — nums.",
+"outputFormat": "For each test case print the answer array as a JSON-like array on its own line.",
+"sampleIO": {
+"input": "2\n4\n1 2 3 4\n5\n-1 1 0 -3 3",
+"output": "[24,12,8,6]\n[0,0,9,0,0]"
+},
+"similar": ["11", "31", "43"]
+},
+{
+"id": "45",
+"title": "Linked List Cycle",
+"difficulty": "Easy",
+"tags": [
+"linked-list",
+"two-pointers"
+],
+"description": "Given head of a linked list, determine if the linked list has a cycle in it. Return true if there is a cycle, otherwise false.",
+"constraints": "The number of nodes is in the range [0, 10^4], -10^5 <= Node.val <= 10^5",
+"sampleCases": [
+{
+"input": { "list": [3,2,0,-4], "pos": 1 },
+"expectedOutput": true
+},
+{
+"input": { "list": [1,2], "pos": 0 },
+"expectedOutput": true
+}
+],
+"hiddenCases": [
+{ "input": { "list": [1], "pos": -1 }, "expectedOutput": false },
+{ "input": { "list": [], "pos": -1 }, "expectedOutput": false },
+{ "input": { "list": [1,2,3,4,5], "pos": 2 }, "expectedOutput": true }
+],
+"inputFormat": "First line contains integer T — number of test cases. Each test case consists of two lines:\n1) an integer n — number of nodes followed by n space-separated integers — the node values.\n2) an integer pos — the index (0-based) where the tail connects to form a cycle, or -1 if no cycle.",
+"outputFormat": "For each test case print true or false on its own line indicating whether the linked list has a cycle.",
+"sampleIO": {
+"input": "2\n4\n3 2 0 -4\n1\n2\n1 2\n0",
+"output": "true\ntrue"
+},
+"similar": ["2", "4", "28"]
+},
+{
+"id": "46",
+"title": "Minimum Path Sum",
+"difficulty": "Medium",
+"tags": [
+"dynamic-programming",
+"matrix"
+],
+"description": "Given an m x n grid filled with non-negative numbers, find a path from top left to bottom right which minimizes the sum of all numbers along its path. You can only move down or right.",
+"constraints": "m == grid.length, n == grid[i].length, 1 <= m, n <= 200, 0 <= grid[i][j] <= 100",
+"sampleCases": [
+{
+"input": { "grid": [[1,3,1],[1,5,1],[4,2,1]] },
+"expectedOutput": 7
+},
+{
+"input": { "grid": [[1,2,3],[4,5,6]] },
+"expectedOutput": 12
+}
+],
+"hiddenCases": [
+{ "input": { "grid": [[0]] }, "expectedOutput": 0 },
+{ "input": { "grid": [[1,0],[0,1]] }, "expectedOutput": 1 },
+{ "input": { "grid": [[7,3,1],[2,8,1],[1,1,1]] }, "expectedOutput": 9 }
+],
+"inputFormat": "First line contains integer T — number of test cases. Each test case consists of:\n1) two integers m and n — dimensions of the grid.\n2) m lines each containing n space-separated integers — the grid rows.",
+"outputFormat": "For each test case print a single integer — the minimum path sum, on its own line.",
+"sampleIO": {
+"input": "2\n3 3\n1 3 1\n1 5 1\n4 2 1\n2 3\n1 2 3\n4 5 6",
+"output": "7\n12"
+},
+"similar": ["11", "26", "46"]
+},
+{
+  "id": "47",
+  "title": "Spiral Matrix",
+  "difficulty": "Medium",
+  "tags": ["matrix"],
+  "description": "Given an m x n matrix, return all elements of the matrix in spiral order.",
+  "constraints": "1 <= m, n <= 100, -10^9 <= matrix[i][j] <= 10^9",
+  "sampleCases": [
+    {
+      "input": { "matrix": [[1,2,3],[4,5,6],[7,8,9]] },
+      "expectedOutput": [1,2,3,6,9,8,7,4,5]
+    },
+    {
+      "input": { "matrix": [[1,2,3,4],[5,6,7,8],[9,10,11,12]] },
+      "expectedOutput": [1,2,3,4,8,12,11,10,9,5,6,7]
+    }
+  ],
+  "hiddenCases": [
+    { "input": { "matrix": [[1]] }, "expectedOutput": [1] },
+    { "input": { "matrix": [[1,2],[3,4]] }, "expectedOutput": [1,2,4,3] }
+  ],
+  "inputFormat": "First line contains integer T — number of test cases. Each test case contains two lines: 1) integers m and n — matrix dimensions, 2) m lines each with n space-separated integers — the matrix rows.",
+  "outputFormat": "For each test case, print the spiral order traversal as a JSON-like array on its own line.",
+  "sampleIO": { "input": "2\n3 3\n1 2 3\n4 5 6\n7 8 9\n3 4\n1 2 3 4\n5 6 7 8\n9 10 11 12", "output": "[1,2,3,6,9,8,7,4,5]\n[1,2,3,4,8,12,11,10,9,5,6,7]" },
+  "similar": ["12", "27", "30"]
+},
+{
+"id": "48",
+"title": "Implement Trie (Prefix Tree)",
+"difficulty": "Medium",
+"tags": [
+"design",
+"trie",
+"string"
+],
+"description": "Implement a trie with insert, search, and startsWith methods.",
+"constraints": "1 <= word.length <= 2000 across all operations, inputs are lowercase English letters",
+"sampleCases": [
+{
+"input": { "operations": ["Trie","insert","search","search","startsWith","insert","search"], "arguments": [[],["apple"],["apple"],["app"],["app"],["app"],["app"]] },
+"expectedOutput": [null,null,true,false,true,null,true]
+},
+{
+"input": { "operations": ["Trie","insert","search"], "arguments": [[],["abc"],["abc"]] },
+"expectedOutput": [null,null,true]
+}
+],
+"hiddenCases": [
+{ "input": { "operations": ["Trie","search"], "arguments": [[],["a"]] }, "expectedOutput": [null,false] },
+{ "input": { "operations": ["Trie","insert","startsWith"], "arguments": [[],["hello"],["he"]] }, "expectedOutput": [null,null,true] }
+],
+"inputFormat": "First line contains integer T — number of test batches. Each batch describes an operation sequence:\n1) an integer m — number of operations.\n2) m lines where each line contains an operation name followed by its argument(s) in a simple format.\n(For simpler judges, provide operations and arguments as shown in samples.)",
+"outputFormat": "For each batch print a JSON-like array of results corresponding to every operation (use null for constructor) on its own line.",
+"sampleIO": {
+"input": "2\n7\nTrie\ninsert apple\nsearch apple\nsearch app\nstartsWith app\ninsert app\nsearch app\n3\nTrie\ninsert abc\nsearch abc",
+"output": "[null,null,true,false,true,null,true]\n[null,null,true]"
+},
+"similar": ["32", "47", "48"]
+},
+{
+"id": "49",
+"title": "No. of Connected Components in Graph",
+"difficulty": "Medium",
+"tags": [
+"graph",
+"union-find",
+"dfs"
+],
+"description": "Given n nodes labeled from 0 to n-1 and a list of undirected edges, return the number of connected components in the graph.",
+"constraints": "1 <= n <= 2000, 0 <= edges.length <= n(n-1)/2, edges[i].length == 2",
+"sampleCases": [
+{
+"input": { "n": 5, "edges": [[0,1],[1,2],[3,4]] },
+"expectedOutput": 2
+},
+{
+"input": { "n": 5, "edges": [[0,1],[1,2],[2,3],[3,4]] },
+"expectedOutput": 1
+}
+],
+"hiddenCases": [
+{ "input": { "n": 4, "edges": [] }, "expectedOutput": 4 },
+{ "input": { "n": 1, "edges": [] }, "expectedOutput": 1 },
+{ "input": { "n": 6, "edges": [[0,1],[2,3],[4,5]] }, "expectedOutput": 3 }
+],
+"inputFormat": "First line contains integer T — number of test cases. Each test case consists of:\n1) an integer n — number of nodes.\n2) an integer m — number of edges.\n3) m lines each containing two integers u and v — an undirected edge between u and v.",
+"outputFormat": "For each test case print a single integer — the number of connected components — on its own line.",
+"sampleIO": {
+"input": "2\n5\n3\n0 1\n1 2\n3 4\n5\n4\n0 1\n1 2\n2 3\n3 4",
+"output": "2\n1"
+},
+"similar": ["19", "27", "39"]
+},
+{
+  "id": "50",
+  "title": "Majority Element",
+  "difficulty": "Easy",
+  "tags": ["array", "hashmap"],
+  "description": "Given an array nums of size n, return the majority element. The majority element is the element that appears more than ⌊n / 2⌋ times.",
+  "constraints": "1 <= nums.length <= 5 * 10^4, -10^9 <= nums[i] <= 10^9",
+  "sampleCases": [
+    {
+      "input": { "nums": [3,2,3] },
+      "expectedOutput": 3
+    },
+    {
+      "input": { "nums": [2,2,1,1,1,2,2] },
+      "expectedOutput": 2
+    }
+  ],
+  "hiddenCases": [
+    { "input": { "nums": [1] }, "expectedOutput": 1 },
+    { "input": { "nums": [6,5,5] }, "expectedOutput": 5 }
+  ],
+  "inputFormat": "First line contains integer T — number of test cases. Each test case contains two lines: 1) an integer n — number of elements in the array, 2) n space-separated integers — the array nums.",
+  "outputFormat": "For each test case, print the majority element on a single line. It's guaranteed that a majority element always exists.",
+  "sampleIO": { "input": "2\n3\n3 2 3\n7\n2 2 1 1 1 2 2", "output": "3\n2" },
+  "similar": ["5", "17", "25"]
+}
+]
