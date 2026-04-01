@@ -15,6 +15,7 @@ export const submitAssessment = (contestId, payload, token) =>
   axios.post(`${API}/${contestId}/submit`, payload, authHeaders(token));
 export const getMyContestAttempts = (token) => axios.get(`${API}/me/attempts`, authHeaders(token));
 export const getCompanyContests = (token) => axios.get(`${API}/company/mine`, authHeaders(token));
+export const getCompanyProblemIdeas = (token) => axios.get(`${API}/company/problems`, authHeaders(token));
 
 export const createLiveInterviewSession = (contestId, payload, token) =>
   axios.post(`${API}/${contestId}/live-interviews`, payload, authHeaders(token));

@@ -1,40 +1,38 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-
-// Pages
-import Home from "./pages/Home";
-import Dashboard from "./pages/Dashboard";
-import Problems from "./pages/Problems";
-import QuestionDetail from "./pages/QuestionDetail";
-import NotFound from "./pages/NotFound";
-import AIChatPage from "./pages/AIChatPage";
-import Discuss from "./pages/Discuss";
-import Contest from "./pages/Contest";
-import Contribute from "./pages/Contribute";
-
-// Auth Components
-import Login from "./components/Auth/Login";
-import Register from "./components/Auth/Register";
-import ForgotPassword from "./components/Auth/ForgotPassword";
+import { SignIn, SignUp } from "@clerk/clerk-react";
 import Layout from "./components/Layout";
 import ScrollToTop from "./components/ScrollToTop";
-
-// Layout
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-
-// Context
 import { AuthProvider } from "./context/AuthContext";
+import Onboarding from "./pages/Onboarding";
 
-import CodeEditor from "./components/CodeEditor";
+// Pages (lazy loaded)
+const Home = lazy(() => import("./pages/Home"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Problems = lazy(() => import("./pages/Problems"));
+const QuestionDetail = lazy(() => import("./pages/QuestionDetail"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const AIChatPage = lazy(() => import("./pages/AIChatPage"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Discuss = lazy(() => import("./pages/Discuss"));
+const Contest = lazy(() => import("./pages/Contest"));
+const Contribute = lazy(() => import("./pages/Contribute"));
+const Profile = lazy(() => import("./pages/Profile"));
+const CompanyCandidates = lazy(() => import("./pages/CompanyCandidates"));
+const CompanySettings = lazy(() => import("./pages/CompanySettings"));
+const LearningPath = lazy(() => import("./pages/LearningPath"));
+const LiveInterviews = lazy(() => import("./pages/LiveInterviews"));
+const InterviewRoom = lazy(() => import("./pages/InterviewRoom"));
 
 const LayoutMain = ({ children }) => {
   const location = useLocation();
 
-  // Hide Navbar/Footer on auth pages
-  const hideLayout = ["/login", "/register","/", "/forgot-password"].includes(
+  // Hide Navbar/Footer on auth and interview room pages
+  const hideLayout = ["/login", "/register", "/onboarding"].includes(
     location.pathname
-  );
+  ) || location.pathname.startsWith("/interview/room");
 
   return (
     <>
@@ -51,25 +49,34 @@ const App = () => {
       <Router>
         <ScrollToTop />
         <LayoutMain>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Suspense fallback={<div className="app-page flex items-center justify-center p-8 text-slate-300">Loading...</div>}>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Home />} />
+              <Route path="/login/*" element={<div className="app-page flex items-center justify-center p-4"><SignIn routing="path" path="/login" signUpUrl="/register" fallbackRedirectUrl="/onboarding" /></div>} />
+              <Route path="/register/*" element={<div className="app-page flex items-center justify-center p-4"><SignUp routing="path" path="/register" signInUrl="/login" fallbackRedirectUrl="/onboarding" /></div>} />
+              <Route path="/onboarding" element={<Onboarding />} />
 
-            {/* Protected Routes */}
-            <Route path="/dashboard" element={<Layout> <Dashboard /></Layout>} />
-             <Route path="/problems" element={<Layout><Problems /></Layout>} />
-             <Route path="/contest" element={<Layout><Contest /></Layout>} />
-             <Route path="/discuss" element={<Layout><Discuss /></Layout>} />
-             <Route path="/contribute" element={<Layout><Contribute /></Layout>} />
-             <Route path="/ai-chat" element={<AIChatPage />} />
-            <Route path="/question/:id" element={<Layout><QuestionDetail /></Layout>} />
+              {/* Protected Routes */}
+              <Route path="/dashboard" element={<Layout> <Dashboard /></Layout>} />
+              <Route path="/problems" element={<Layout><Problems /></Layout>} />
+              <Route path="/contest" element={<Layout><Contest /></Layout>} />
+              <Route path="/discuss" element={<Layout><Discuss /></Layout>} />
+              <Route path="/contribute" element={<Layout><Contribute /></Layout>} />
+              <Route path="/ai-chat" element={<AIChatPage />} />
+              <Route path="/profile" element={<Layout><Profile /></Layout>} />
+              <Route path="/candidates" element={<Layout><CompanyCandidates /></Layout>} />
+              <Route path="/settings" element={<Layout><CompanySettings /></Layout>} />
+              <Route path="/learning-path" element={<Layout><LearningPath /></Layout>} />
+              <Route path="/question/:id" element={<Layout><QuestionDetail /></Layout>} />
+              <Route path="/live-interviews" element={<Layout><LiveInterviews /></Layout>} />
+              <Route path="/interview/room/:roomToken" element={<InterviewRoom />} />
+              <Route path="/analytics" element={<Analytics />} />
 
-            {/* 404 */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              {/* 404 */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </LayoutMain>
       </Router>
     </AuthProvider>

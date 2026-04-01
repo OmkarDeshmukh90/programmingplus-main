@@ -8,6 +8,7 @@ const replySchema = new mongoose.Schema({
 
 const discussSchema = new mongoose.Schema({
   text: { type: String, required: true },
+  category: { type: String, default: "General" },
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   replies: [replySchema],
   createdAt: { type: Date, default: Date.now }

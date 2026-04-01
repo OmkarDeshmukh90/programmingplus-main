@@ -5,6 +5,7 @@ const OtpVerificationSchema = new mongoose.Schema({
   password: { type: String, required: true },
   otp: { type: String, required: true },
   otpExpires: { type: Date, required: true },
+  role: { type: String, enum: ["candidate", "company"], default: "candidate" },
 }, { timestamps: true });
 
 OtpVerificationSchema.index({ otpExpires: 1 }, { expireAfterSeconds: 0 });

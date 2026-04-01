@@ -1,10 +1,68 @@
 const express = require("express");
 const router = express.Router();
 const verifyToken = require("../middleware/auth");
+const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 const { spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const questionsData = require("../data/questions.json");
+const Interview = require("../models/Interview");
+const LiveInterviewSession = require("../models/LiveInterviewSession");
+
+const EXECUTION_TIMEOUT_MS = 10000;
+const SUPPORTED_LANGUAGES = new Set(["cpp", "python", "java", "javascript", "go"]);
+
+const getUserIdFromAuthHeader = async (authHeader) => {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.decode(token);
+    if (!decoded?.sub) return null;
+    const user = await mongoose.model("User").findOne({ clerkId: decoded.sub });
+    return user?._id || null;
+  } catch {
+    return null;
+  }
+};
+
+const getInterviewRoomByToken = async (roomToken) => {
+  if (!roomToken) return null;
+
+  const interview = await Interview.findOne({ roomToken }).lean();
+  if (interview) {
+    return { interview, isLiveSession: false };
+  }
+
+  if (mongoose.Types.ObjectId.isValid(roomToken)) {
+    const liveSession = await LiveInterviewSession.findById(roomToken).lean();
+    if (liveSession) {
+      return { interview: liveSession, isLiveSession: true };
+    }
+  }
+
+  return null;
+};
+
+const ensureExecutionAccess = async (req, res, next) => {
+  const userId = await getUserIdFromAuthHeader(req.headers.authorization);
+  if (userId) {
+    req.userId = userId;
+    return next();
+  }
+
+  const roomToken = req.body?.roomToken;
+  const roomContext = await getInterviewRoomByToken(roomToken);
+  if (!roomContext) {
+    return res.status(401).json({
+      message: "Unauthorized. Provide a valid login token or interview room token.",
+    });
+  }
+
+  req.roomToken = roomToken;
+  req.roomContext = roomContext;
+  next();
+};
 
 const getPythonCandidates = () => {
   if (process.env.PYTHON_BIN) {
@@ -135,7 +193,8 @@ const normalizeOutput = (rawOutput) => {
 
 const executeCode = (language, code, stdin) => {
   return new Promise((resolve) => {
-    let filePath = path.join(__dirname, `temp_${Date.now()}`);
+    const runId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    let filePath = path.join(__dirname, `temp_${runId}`);
     const cleanupFiles = [];
 
     const cleanup = () => {
@@ -148,17 +207,45 @@ const executeCode = (language, code, stdin) => {
 
     const runWithStdin = (child) => {
       let stdout = "";
+      let timedOut = false;
+      const timeout = setTimeout(() => {
+        timedOut = true;
+        try {
+          child.kill();
+        } catch {}
+      }, EXECUTION_TIMEOUT_MS);
+
+      console.log(`[EXEC] Child process spawned. (PID: ${child.pid})`);
 
       child.once("error", (err) => {
+        clearTimeout(timeout);
+        console.error(`[EXEC] Child process error:`, err);
         cleanup();
         resolve({ output: err.message || "Runtime execution failed", success: false });
       });
 
-      child.stdout.on("data", (data) => (stdout += data.toString()));
-      child.stderr.on("data", (data) => (stdout += data.toString()));
+      child.stdout.on("data", (data) => {
+        const chunk = data.toString();
+        console.log(`[EXEC] STDOUT: ${chunk}`);
+        stdout += chunk;
+      });
+      child.stderr.on("data", (data) => {
+        const chunk = data.toString();
+        console.warn(`[EXEC] STDERR: ${chunk}`);
+        stdout += chunk;
+      });
 
       child.on("close", (exitCode) => {
+        clearTimeout(timeout);
+        console.log(`[EXEC] Child process closed with code ${exitCode}`);
         cleanup();
+        if (timedOut) {
+          resolve({
+            output: `Execution timed out after ${EXECUTION_TIMEOUT_MS / 1000} seconds.`,
+            success: false,
+          });
+          return;
+        }
         resolve({ output: stdout.trim(), success: exitCode === 0 });
       });
 
@@ -168,11 +255,13 @@ const executeCode = (language, code, stdin) => {
 
     if (language === "cpp") {
       filePath += ".cpp";
+      console.log(`[EXEC] Preparing C++ execution. File: ${filePath}`);
       fs.writeFileSync(filePath, code);
       const outFile = process.platform === "win32" ? `${filePath}.exe` : `${filePath}.out`;
       cleanupFiles.push(filePath, outFile);
 
       runCommandWithFallback(getCppCompilerCandidates(), [filePath, "-o", outFile]).then((compileRes) => {
+        console.log(`[EXEC] C++ Compile Result:`, compileRes);
         if (!compileRes.ok) {
           cleanup();
           resolve({ output: compileRes.output || "C++ compilation failed", success: false });
@@ -183,6 +272,7 @@ const executeCode = (language, code, stdin) => {
       });
     } else if (language === "python") {
       filePath += ".py";
+      console.log(`[EXEC] Preparing Python execution. File: ${filePath}`);
       fs.writeFileSync(filePath, code);
       cleanupFiles.push(filePath);
 
@@ -192,18 +282,21 @@ const executeCode = (language, code, stdin) => {
         { stdio: ["pipe", "pipe", "pipe"] },
         (child) => runWithStdin(child),
         (err) => {
+          console.error(`[EXEC] Python spawn failed:`, err);
           cleanup();
           resolve({ output: err.message || "Python execution failed", success: false });
         }
       );
     } else if (language === "java") {
       filePath += ".java";
+      console.log(`[EXEC] Preparing Java execution. File: ${filePath}`);
       fs.writeFileSync(filePath, code);
       const className = path.basename(filePath, ".java");
       const classFile = path.join(__dirname, `${className}.class`);
       cleanupFiles.push(filePath, classFile);
 
       runCommandWithFallback(getJavaCompilerCandidates(), [filePath], { cwd: __dirname }).then((compileRes) => {
+        console.log(`[EXEC] Java Compile Result:`, compileRes);
         if (!compileRes.ok) {
           cleanup();
           resolve({ output: compileRes.output || "Java compilation failed", success: false });
@@ -216,13 +309,49 @@ const executeCode = (language, code, stdin) => {
           { stdio: ["pipe", "pipe", "pipe"] },
           (child) => runWithStdin(child),
           (err) => {
+            console.error(`[EXEC] Java spawn failed:`, err);
             cleanup();
             resolve({ output: err.message || "Java runtime not found", success: false });
           }
         );
       });
+    } else if (language === "javascript") {
+      filePath += ".js";
+      console.log(`[EXEC] Preparing JS (Node) execution. File: ${filePath}`);
+      fs.writeFileSync(filePath, code);
+      cleanupFiles.push(filePath);
+
+      spawnFirstAvailable(
+        ["node"],
+        [filePath],
+        { stdio: ["pipe", "pipe", "pipe"] },
+        (child) => runWithStdin(child),
+        (err) => {
+          console.error(`[EXEC] Node spawn failed:`, err);
+          cleanup();
+          resolve({ output: err.message || "Node.js execution failed", success: false });
+        }
+      );
+    } else if (language === "go") {
+      filePath += ".go";
+      console.log(`[EXEC] Preparing Go execution. File: ${filePath}`);
+      fs.writeFileSync(filePath, code);
+      const outFile = process.platform === "win32" ? `${filePath}.exe` : `${filePath}.out`;
+      cleanupFiles.push(filePath, outFile);
+
+      runCommandWithFallback(["go"], ["build", "-o", outFile, filePath]).then((compileRes) => {
+        console.log(`[EXEC] Go build result:`, compileRes);
+        if (!compileRes.ok) {
+          cleanup();
+          resolve({ output: compileRes.output || "Go build failed", success: false });
+          return;
+        }
+        const child = spawn(outFile, [], { stdio: ["pipe", "pipe", "pipe"] });
+        runWithStdin(child);
+      });
     } else {
-      resolve({ output: "Unsupported language", success: false });
+      console.warn(`[EXEC] Unsupported Language: ${language}`);
+      resolve({ output: `Unsupported language: ${language}`, success: false });
     }
   });
 };
@@ -263,4 +392,24 @@ router.post("/run", verifyToken, async (req, res) => {
   }
 });
 
+router.post("/execute", ensureExecutionAccess, async (req, res) => {
+  const { code, language, stdin = "" } = req.body;
+  
+  if (!code || !language) {
+    return res.status(400).json({ message: "Code and language are required" });
+  }
+
+  if (!SUPPORTED_LANGUAGES.has(language)) {
+    return res.status(400).json({ message: `Unsupported language: ${language}` });
+  }
+
+  try {
+    const { output, success } = await executeCode(language, code, stdin);
+    res.json({ output, success });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
+

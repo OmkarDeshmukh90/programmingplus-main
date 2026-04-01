@@ -7,7 +7,14 @@ const userSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   otp: { type: String }, 
   otpExpires: { type: Date },
+  clerkId: { type: String, unique: true, sparse: true },
 
+  role: {
+    type: String,
+    enum: ["candidate", "company"],
+    default: "candidate",
+    index: true
+  },
   
   // Programming+ specific fields
   solvedQuestions: [

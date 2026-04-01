@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { IoIosEye, IoIosEyeOff } from "react-icons/io";
+import { AuthContext } from "../../context/AuthContext";
 import BASE_URL from "../../config";
 import ReactBitsButton from "../ui/ReactBitsButton";
 
@@ -10,6 +11,8 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  const { setToken, setRole } = React.useContext(AuthContext);
 
   const navigate = useNavigate();
 
@@ -21,9 +24,16 @@ export default function Login() {
     setMessage("");
     try {
       const res = await axios.post(`${BASE_URL}/login`, form);
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userName", res.data.name);
-      localStorage.setItem("userEmail", res.data.email);
+      const { token, name, email, role } = res.data;
+      
+      localStorage.setItem("token", token);
+      localStorage.setItem("userName", name);
+      localStorage.setItem("userEmail", email);
+      localStorage.setItem("userRole", role || "candidate");
+      
+      setToken(token);
+      setRole(role || "candidate");
+      
       navigate("/dashboard");
     } catch (err) {
       setMessage(err.response?.data?.message || "Login failed");
@@ -33,13 +43,13 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-gray-900 to-zinc-900">
-      <div className="bg-gray-800/90 backdrop-blur-sm p-10 rounded-3xl shadow-2xl w-full max-w-md border border-gray-700/50 relative z-10">
-        <h2 className="text-3xl font-bold text-white mb-6 text-center">
-          Welcome back to <span className="text-indigo-400">Programming+</span>
+    <div className="app-page flex items-center justify-center p-4">
+      <div className="app-card w-full max-w-md p-10">
+        <h2 className="text-3xl font-semibold text-white mb-6 text-center">
+          Welcome back to <span className="text-cyan-300">Programming+</span>
         </h2>
 
-        {message && <p className="text-red-400 text-center mb-4">{message}</p>}
+        {message && <p className="text-rose-400 text-center mb-4">{message}</p>}
 
         <form onSubmit={handleLogin} className="space-y-4">
           {/* Email */}
@@ -50,7 +60,7 @@ export default function Login() {
             value={form.email}
             onChange={handleChange}
             required
-            className="w-full p-3 rounded-xl bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400 transition"
+            className="app-input"
           />
 
           {/* Password */}
@@ -62,7 +72,7 @@ export default function Login() {
               value={form.password}
               onChange={handleChange}
               required
-              className="w-full p-3 rounded-xl bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400 transition"
+              className="app-input"
             />
             <button
               type="button"
@@ -83,14 +93,14 @@ export default function Login() {
           </ReactBitsButton>
         </form>
 
-        <p className="mt-4 text-center text-gray-400">
+        <p className="mt-4 text-center text-slate-400">
           Don't have an account?{" "}
-          <Link to="/register" className="text-indigo-400 hover:text-purple-400 font-semibold">
+          <Link to="/register" className="text-cyan-300 hover:text-cyan-200 font-semibold">
             Register
           </Link>
         </p>
-        <p className="mt-2 text-center text-gray-400">
-          <Link to="/forgot-password" className="text-indigo-400 hover:text-purple-400 font-semibold">
+        <p className="mt-2 text-center text-slate-400">
+          <Link to="/forgot-password" className="text-cyan-300 hover:text-cyan-200 font-semibold">
             Forgot Password?
           </Link>
         </p>

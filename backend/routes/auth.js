@@ -24,17 +24,18 @@ const transporter = nodemailer.createTransport({
 
 // STEP 1: Send OTP
 router.post('/register/send-otp', async (req, res) => {
-  const { email, password, name } = req.body;
+  const { email, password, name, role } = req.body;
   try {
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ message: 'User already exists' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const normalizedRole = role === "company" ? "company" : "candidate";
 
     await OtpVerification.findOneAndUpdate(
       { email },
-      { email, password: hashedPassword, otp, otpExpires: new Date(Date.now() + 10 * 60 * 1000) },
+      { email, password: hashedPassword, otp, otpExpires: new Date(Date.now() + 10 * 60 * 1000), role: normalizedRole },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
@@ -54,7 +55,7 @@ router.post('/register/send-otp', async (req, res) => {
 
 // STEP 2: Verify OTP & create user
 router.post('/register/verify-otp', async (req, res) => {
-  const { email, otp, name } = req.body;
+  const { email, otp, name, role } = req.body;
   const normalizedOtp = String(otp || '').trim();
   const fail = (status, message) => {
     const error = new Error(message);
@@ -93,8 +94,9 @@ router.post('/register/verify-otp', async (req, res) => {
     );
     if (existingUser) fail(400, 'User already exists');
 
+    const normalizedRole = role === "company" ? "company" : (otpRecord.role || "candidate");
     const createdUsers = await User.create(
-      [{ name, email: otpRecord.email, password: otpRecord.password, isVerified: true }],
+      [{ name, email: otpRecord.email, password: otpRecord.password, isVerified: true, role: normalizedRole }],
       session ? { session } : undefined
     );
     return createdUsers[0];
@@ -143,6 +145,7 @@ router.post('/register/verify-otp', async (req, res) => {
     token,
     name: newUser.name,
     email: newUser.email,
+    role: newUser.role || "candidate"
   });
 });
 
@@ -172,7 +175,8 @@ router.post('/login', async (req, res) => {
     res.json({
       token,
       name: user.name,
-      email: user.email
+      email: user.email,
+      role: user.role || "candidate"
     });
   } catch (err) {
     console.error(err);
@@ -236,6 +240,52 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
-module.exports = router;
+const { requireAuth } = require('@clerk/express');
 
+// ================= Clerk Sync =================
+router.post('/sync', requireAuth(), async (req, res) => {
+  const { name, email, role } = req.body;
+  const clerkId = req.auth.userId;
+
+  try {
+    let user = await User.findOne({ clerkId });
+    
+    if (user) {
+      if (role && user.role !== role) {
+        user.role = role;
+        await user.save();
+      }
+      return res.json({ success: true, user, message: 'User updated' });
+    }
+
+    // fallback: user might exist by email from old auth
+    user = await User.findOne({ email });
+    if (user) {
+      user.clerkId = clerkId;
+      if (role && user.role !== role) {
+        user.role = role;
+      }
+      await user.save();
+      return res.json({ success: true, user, message: 'User linked to Clerk' });
+    }
+
+    // create new user
+    user = new User({
+      clerkId,
+      name: name || 'User',
+      email,
+      role: role || 'candidate',
+      password: 'clerk-user', // dummy password, since it's required in schema
+      isVerified: true
+    });
+    
+    await user.save();
+    return res.status(201).json({ success: true, user, message: 'User created' });
+  } catch (err) {
+    console.error('[AUTH SYNC ERROR]', err);
+    res.status(500).json({ message: 'Server error during sync' });
+  }
+});
+
+module.exports = router;
 

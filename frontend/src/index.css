@@ -1,20 +1,151 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
-/* Dark theme */
 :root {
-  --bg-color: rgba(26,26,26,1);
-  --text-color: #ffffff;
-  --heading-color: #FFFFFF;
+  --bg: #030303;
+  --surface-1: rgba(15, 15, 20, 0.7);
+  --surface-2: rgba(25, 25, 30, 0.8);
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --heading: #ffffff;
+  --accent: #6366f1;
+  --accent-2: #10b981;
+  --border: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glow: 0 0 30px rgba(99, 102, 241, 0.2);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  
+  --bg-color: var(--bg);
+  --surface-color: var(--surface-1);
+  --text-color: var(--text);
+  --heading-color: var(--heading);
+  --border-color: var(--border);
+}
+
+.glass {
+  background: var(--surface-1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 body {
-  /* background-color: var(--bg-color); */
-  background-color: black;
-  color: var(--text-color);
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-rendering: optimizeLegibility;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: var(--heading-color);
+  color: var(--heading);
+  font-family: "Space Grotesk", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: -0.01em;
+}
+
+@layer components {
+  .app-page {
+    @apply min-h-screen text-[color:var(--text)];
+    background: radial-gradient(circle at top right, rgba(79, 70, 229, 0.12), transparent 45%),
+      radial-gradient(circle at 10% 40%, rgba(6, 182, 212, 0.1), transparent 40%),
+      var(--bg);
+  }
+
+  .app-shell {
+    @apply max-w-7xl mx-auto px-6 py-10;
+  }
+
+  .app-card {
+    @apply rounded-2xl border shadow-[0_24px_60px_rgba(15,23,42,0.45)];
+    background-color: var(--surface-1);
+    border-color: var(--border);
+  }
+
+  .app-panel {
+    @apply rounded-xl border;
+    background-color: var(--surface-2);
+    border-color: var(--border);
+  }
+
+  .app-card-hover {
+    @apply transition-transform duration-200 hover:-translate-y-0.5;
+    border-color: var(--border);
+  }
+
+  .app-card-hover:hover {
+    border-color: rgba(79, 70, 229, 0.4);
+    box-shadow: 0 20px 40px rgba(5, 5, 5, 0.6);
+  }
+
+  .app-input {
+    @apply w-full rounded-xl border p-3 text-sm focus:outline-none focus:ring-2;
+    background-color: rgba(10, 10, 10, 0.8);
+    color: var(--text);
+    border-color: var(--border);
+    --tw-ring-color: rgba(79, 70, 229, 0.5);
+  }
+
+  .app-textarea {
+    @apply w-full rounded-xl border p-3 text-sm focus:outline-none focus:ring-2;
+    background-color: rgba(10, 10, 10, 0.8);
+    color: var(--text);
+    border-color: var(--border);
+    --tw-ring-color: rgba(79, 70, 229, 0.5);
+  }
+
+  .app-select {
+    @apply rounded-xl border p-3 text-sm focus:outline-none focus:ring-2;
+    background-color: rgba(10, 10, 10, 0.8);
+    color: var(--text);
+    border-color: var(--border);
+    --tw-ring-color: rgba(79, 70, 229, 0.5);
+  }
+
+  .app-section-title {
+    @apply text-2xl font-semibold;
+    color: var(--heading);
+  }
+
+  .app-subtitle {
+    color: var(--muted);
+  }
+
+  .app-badge {
+    @apply rounded-full text-xs px-3 py-1;
+    background-color: rgba(79, 70, 229, 0.15);
+    color: var(--accent);
+  }
+
+  .app-empty {
+    @apply rounded-2xl border p-6 text-center;
+    background-color: rgba(10, 10, 10, 0.6);
+    border-color: var(--border);
+    color: var(--muted);
+  }
+}
+
+.ai-message-bubble {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #d1fae5;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.05);
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+.sparkle-icon {
+  animation: sparkle 2s infinite ease-in-out;
+  color: #10b981;
 }
 
 /* Scrollbar styling for dark theme */
@@ -23,21 +154,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e1e1e; /* track color (dark) */
+  background: #050505; /* track color (dark) */
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #555; /* scrollbar thumb color */
+  background-color: #1f2937; /* scrollbar thumb color */
   border-radius: 5px;      /* rounded edges */
-  border: 2px solid #1e1e1e; /* gives a little padding effect */
+  border: 2px solid #050505; /* gives a little padding effect */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #888; /* thumb color on hover */
+  background-color: #374151; /* thumb color on hover */
 }
 
 /* Firefox scrollbar support */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #555 #1e1e1e;
+  scrollbar-color: #1f2937 #050505;
 }

@@ -2,3 +2,8 @@
 **/node_modules/
 backend/.env
 frontend/.env
+backend/db_dump.json
+backend/routes/temp_*
+frontend/lint*.json
+frontend/lint*.txt
+frontend/update_log.txt

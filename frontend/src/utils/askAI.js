@@ -1,11 +1,11 @@
 import BASE_URL from "../config";
 
-export const askAI = async (msg) => {
+export const askAI = async ({ prompt, mode, context } = {}) => {
   try {
     const res = await fetch(`${BASE_URL}/ai/ask-ai`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: msg }),
+      body: JSON.stringify({ prompt, mode, context }),
     });
 
     if (!res.ok) throw new Error("AI request failed");

@@ -2,73 +2,70 @@ import React from "react";
 import { Github, Code2, Star, GitBranch } from "lucide-react";
 
 const Contribute = () => {
-  const githubRepo = "https://github.com/Sonu-Kumhar"; // 🔹 change this to your repo link
+  const githubRepo = "https://github.com/Sonu-Kumhar";
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-white px-6 py-12">
-      <div className="max-w-4xl mx-auto bg-[#1e1e1e] border border-gray-700 rounded-2xl shadow-lg p-8">
-        {/* Header */}
+    <div className="app-page">
+      <div className="app-shell max-w-4xl">
+        <div className="app-card p-8">
         <div className="flex flex-col items-center text-center mb-8">
-          <Github className="w-12 h-12 text-cyan-400 mb-3" />
-          <h1 className="text-3xl font-bold text-cyan-400 mb-2">
-            💡 Contribute to Programming+
+          <Github className="w-12 h-12 text-cyan-300 mb-3" />
+          <h1 className="text-3xl font-semibold text-white mb-2">
+            Contribute to Programming+
           </h1>
-          <p className="text-gray-400 max-w-2xl">
-            We’re building a community-driven coding platform! Whether you’re a beginner or a pro, 
-            your contributions can make a huge impact — from improving docs to adding new features 🚀
+          <p className="text-slate-300 max-w-2xl">
+            Join the community building a hiring-ready coding platform. Improve the product,
+            share ideas, and help shape the future of technical assessment.
           </p>
         </div>
 
-        {/* Contribution Template */}
-        <div className="space-y-6 text-gray-300">
-          <section>
-            <h2 className="text-xl font-semibold text-cyan-300 flex items-center gap-2 mb-2">
+        <div className="space-y-6 text-slate-300">
+          <section className="app-panel p-5">
+            <h2 className="text-xl font-semibold text-cyan-200 flex items-center gap-2 mb-2">
               <Code2 className="w-5 h-5" /> How to Contribute
             </h2>
             <ul className="list-disc list-inside space-y-2">
-              <li>🍴 Fork the repository on GitHub.</li>
-              <li>🌱 Create a new branch for your feature or fix.</li>
-              <li>💻 Make your changes and commit with a clear message.</li>
-              <li>📤 Push to your fork and open a Pull Request.</li>
-              <li>🎉 Wait for review and merge approval!</li>
+              <li>Fork the repository on GitHub.</li>
+              <li>Create a feature branch with a clear focus.</li>
+              <li>Ship improvements with concise, descriptive commits.</li>
+              <li>Open a pull request with a short summary and screenshots if applicable.</li>
             </ul>
           </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-cyan-300 flex items-center gap-2 mb-2">
+          <section className="app-panel p-5">
+            <h2 className="text-xl font-semibold text-cyan-200 flex items-center gap-2 mb-2">
               <GitBranch className="w-5 h-5" /> Areas You Can Help With
             </h2>
             <ul className="list-disc list-inside space-y-2">
-              <li>🧩 Adding new coding problems or learning paths.</li>
-              <li>⚙️ Improving UI/UX or fixing frontend bugs.</li>
-              <li>🧠 Enhancing backend APIs and MongoDB models.</li>
-              <li>📚 Writing better documentation and setup guides.</li>
-              <li>🚀 Suggesting new features or integrations.</li>
+              <li>Adding new problems, topics, or learning paths.</li>
+              <li>Improving UI/UX quality and accessibility.</li>
+              <li>Enhancing backend APIs or data models.</li>
+              <li>Writing documentation and onboarding guides.</li>
             </ul>
           </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-cyan-300 flex items-center gap-2 mb-2">
+          <section className="app-panel p-5">
+            <h2 className="text-xl font-semibold text-cyan-200 flex items-center gap-2 mb-2">
               <Star className="w-5 h-5" /> Contribution Guidelines
             </h2>
             <ul className="list-disc list-inside space-y-2">
-              <li>Follow clean code and commit message conventions.</li>
-              <li>Write comments for complex logic.</li>
-              <li>Ensure no sensitive data is pushed.</li>
-              <li>Be respectful and collaborate positively 💬</li>
+              <li>Keep changes focused and well-scoped.</li>
+              <li>Document UX changes with clear screenshots or notes.</li>
+              <li>Avoid committing secrets or local configuration.</li>
+              <li>Be respectful and collaborative in review threads.</li>
             </ul>
           </section>
         </div>
 
-        {/* GitHub Button */}
         <div className="text-center mt-10">
           <button
             onClick={() => window.open(githubRepo, "_blank")}
-            className="inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 px-6 py-3 rounded-lg text-lg font-medium transition-all shadow-md"
+            className="inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 px-6 py-3 rounded-xl text-lg font-medium transition-all shadow-md"
           >
             <Github className="w-5 h-5" />
             Contribute on GitHub
           </button>
+        </div>
         </div>
       </div>
     </div>

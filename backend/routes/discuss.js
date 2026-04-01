@@ -8,6 +8,7 @@ router.post("/", verifyToken, async (req, res) => {
   try {
     const newPost = new Discuss({
       text: req.body.text,
+      category: req.body.category || "General",
       user: req.userId
     });
 
@@ -46,6 +47,9 @@ router.put("/:id", verifyToken, async (req, res) => {
     }
 
     post.text = req.body.text;
+    if (req.body.category) {
+      post.category = req.body.category;
+    }
     await post.save();
     await post.populate("user", "name email");
     res.json(post);

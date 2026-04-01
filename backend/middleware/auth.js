@@ -1,19 +1,21 @@
-const jwt = require('jsonwebtoken');
+const { requireAuth } = require('@clerk/express');
+const User = require('../models/User');
 
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Unauthorized' });
+const verifyToken = [
+  requireAuth(),
+  async (req, res, next) => {
+    try {
+      const user = await User.findOne({ clerkId: req.auth.userId });
+      if (!user) {
+        return res.status(403).json({ message: 'User not fully onboarded/synced' });
+      }
+      req.userId = user._id; 
+      next();
+    } catch (err) {
+      console.error(`[AUTH] Custom translation failed:`, err.message);
+      return res.status(403).json({ message: 'Invalid token or sync error' });
+    }
   }
-
-  const token = authHeader.split(' ')[1];
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.id;
-    next();
-  } catch (err) {
-    return res.status(403).json({ message: 'Invalid token' });
-  }
-};
+];
 
 module.exports = verifyToken;

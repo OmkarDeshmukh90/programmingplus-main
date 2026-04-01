@@ -59,6 +59,309 @@ const pickAssessmentQuestions = (contest) => {
   return shuffled.slice(0, totalQuestions).map(extractQuestionPayload);
 };
 
+const fallbackCompanySeeds = [
+  {
+    _id: "seed-swiggy",
+    title: "Swiggy Backend Hiring Sprint",
+    companyName: "Swiggy",
+    roleTitle: "Software Engineer",
+    skills: ["graphs", "dynamic-programming", "arrays"],
+    assessment: { totalQuestions: 3 },
+    status: "published",
+  },
+  {
+    _id: "seed-uber",
+    title: "Uber Marketplace Coding Round",
+    companyName: "Uber",
+    roleTitle: "Platform Engineer",
+    skills: ["graphs", "heap", "greedy"],
+    assessment: { totalQuestions: 3 },
+    status: "published",
+  },
+  {
+    _id: "seed-amazon",
+    title: "Amazon Fulfillment Assessment",
+    companyName: "Amazon",
+    roleTitle: "SDE 1",
+    skills: ["arrays", "binary-search", "dynamic-programming"],
+    assessment: { totalQuestions: 3 },
+    status: "published",
+  },
+  {
+    _id: "seed-paytm",
+    title: "Paytm Payments Challenge",
+    companyName: "Paytm",
+    roleTitle: "Backend Developer",
+    skills: ["hashmap", "graphs", "strings"],
+    assessment: { totalQuestions: 3 },
+    status: "published",
+  },
+];
+
+const companyThemePresets = [
+  {
+    keywords: ["swiggy", "zomato"],
+    domain: "hyperlocal delivery",
+    workload: "orders",
+    network: "delivery zones",
+    queue: "rider dispatch queues",
+    catalog: "restaurant search results",
+    schedule: "peak-hour slots",
+    grid: "city heatmaps",
+    hierarchy: "hub hierarchy",
+  },
+  {
+    keywords: ["uber", "ola"],
+    domain: "mobility dispatch",
+    workload: "rides",
+    network: "pickup clusters",
+    queue: "driver matching queues",
+    catalog: "pickup suggestions",
+    schedule: "surge windows",
+    grid: "coverage maps",
+    hierarchy: "city dispatch hierarchy",
+  },
+  {
+    keywords: ["amazon", "flipkart", "meesho"],
+    domain: "fulfillment and logistics",
+    workload: "shipments",
+    network: "warehouses",
+    queue: "packing queues",
+    catalog: "catalog search results",
+    schedule: "cutoff windows",
+    grid: "warehouse grids",
+    hierarchy: "inventory tree",
+  },
+  {
+    keywords: ["paytm", "phonepe", "razorpay"],
+    domain: "payments infrastructure",
+    workload: "transactions",
+    network: "merchant nodes",
+    queue: "settlement queues",
+    catalog: "merchant lookups",
+    schedule: "settlement windows",
+    grid: "risk matrices",
+    hierarchy: "merchant hierarchy",
+  },
+  {
+    keywords: ["google", "meta", "microsoft"],
+    domain: "large-scale consumer platforms",
+    workload: "requests",
+    network: "service regions",
+    queue: "serving queues",
+    catalog: "search suggestions",
+    schedule: "traffic windows",
+    grid: "latency grids",
+    hierarchy: "service dependency tree",
+  },
+];
+
+const normalizeWords = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+const prettifyTag = (value) =>
+  String(value || "")
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+
+const readableList = (items) => {
+  const clean = items.map((item) => String(item || "").trim()).filter(Boolean);
+  if (clean.length <= 1) return clean[0] || "";
+  if (clean.length === 2) return `${clean[0]} and ${clean[1]}`;
+  return `${clean.slice(0, -1).join(", ")}, and ${clean[clean.length - 1]}`;
+};
+
+const matchesSkill = (tag, skill) => tag.includes(skill) || skill.includes(tag);
+
+const questionDifficultyWeight = {
+  hard: 3,
+  medium: 2,
+  easy: 1,
+};
+
+const scoreQuestionForContest = (question, desiredSkills = []) => {
+  const tags = Array.isArray(question?.tags) ? question.tags.map((tag) => String(tag).toLowerCase()) : [];
+  if (desiredSkills.length === 0) {
+    return tags.length > 0 ? 1 : 0;
+  }
+
+  return desiredSkills.reduce((score, skill) => {
+    const matched = tags.some((tag) => matchesSkill(tag, skill));
+    return score + (matched ? 4 : 0);
+  }, 0);
+};
+
+const pickCompanyPreviewQuestions = (contest, limit = 2) => {
+  const desiredSkills = Array.isArray(contest?.skills)
+    ? contest.skills.map((skill) => String(skill).trim().toLowerCase()).filter(Boolean)
+    : [];
+
+  const pool = Array.isArray(questionsData) ? questionsData : [];
+
+  const ranked = pool
+    .map((question, index) => {
+      const difficulty = String(question?.difficulty || "medium").toLowerCase();
+      return {
+        question,
+        index,
+        score: scoreQuestionForContest(question, desiredSkills),
+        difficultyWeight: questionDifficultyWeight[difficulty] || 1,
+      };
+    })
+    .filter((entry) => desiredSkills.length === 0 || entry.score > 0)
+    .sort((left, right) => {
+      if (right.score !== left.score) return right.score - left.score;
+      if (right.difficultyWeight !== left.difficultyWeight) return right.difficultyWeight - left.difficultyWeight;
+      return left.index - right.index;
+    });
+
+  const source = ranked.length > 0 ? ranked : pool.map((question, index) => ({ question, index, score: 0, difficultyWeight: 1 }));
+  return source.slice(0, Math.max(1, limit)).map((entry) => entry.question);
+};
+
+const getCompanyTheme = (companyName = "") => {
+  const normalized = normalizeWords(companyName);
+  return (
+    companyThemePresets.find((preset) => preset.keywords.some((keyword) => normalized.includes(keyword))) || {
+      domain: "production systems",
+      workload: "events",
+      network: "service clusters",
+      queue: "processing queues",
+      catalog: "search results",
+      schedule: "traffic windows",
+      grid: "ops dashboards",
+      hierarchy: "dependency tree",
+    }
+  );
+};
+
+const detectPattern = (tags = []) => {
+  const normalized = tags.map((tag) => String(tag).toLowerCase());
+  if (normalized.some((tag) => tag.includes("dynamic") || tag === "dp")) return "dp";
+  if (normalized.some((tag) => ["graph", "breadth-first-search", "dfs", "union-find"].includes(tag))) return "graph";
+  if (normalized.some((tag) => tag.includes("heap") || tag.includes("priority"))) return "priority";
+  if (normalized.some((tag) => tag.includes("binary-search"))) return "binary-search";
+  if (normalized.some((tag) => tag.includes("trie") || tag === "string")) return "search";
+  if (normalized.some((tag) => tag.includes("tree"))) return "tree";
+  if (normalized.some((tag) => tag.includes("stack"))) return "stack";
+  if (normalized.some((tag) => tag.includes("matrix"))) return "matrix";
+  if (normalized.some((tag) => tag.includes("linked-list"))) return "linked-list";
+  if (normalized.some((tag) => tag.includes("greedy"))) return "greedy";
+  return "array";
+};
+
+const buildProblemNarrative = ({ pattern, companyName, roleTitle, theme, baseQuestion }) => {
+  switch (pattern) {
+    case "dp":
+      return {
+        title: `Optimize ${theme.workload} across ${theme.schedule} for ${companyName}`,
+        prompt: `You are working on ${companyName}'s ${theme.domain} stack as a ${roleTitle}. Each decision window carries a gain or penalty, and choices now change what remains possible later. Design the best strategy to maximize the total business impact under the operating constraints.`,
+        interviewerLens: "This checks whether you slow down, define state clearly, and reason through transitions instead of rushing into brute force.",
+      };
+    case "graph":
+      return {
+        title: `Route ${theme.workload} efficiently across ${theme.network} for ${companyName}`,
+        prompt: `Your team needs to move information or work items through a network of ${theme.network}. Find the shortest or most efficient way to connect the right nodes while honoring the rules in the prompt and scaling to production-sized inputs.`,
+        interviewerLens: "Interviewers want to see if you can translate an operations network into graph primitives, then choose the right traversal or connectivity strategy.",
+      };
+    case "priority":
+      return {
+        title: `Prioritize ${theme.workload} inside ${companyName}'s ${theme.queue}`,
+        prompt: `During a traffic spike, ${companyName} needs to decide which ${theme.workload} should be processed first. Build a scheduler that always chooses the most urgent or most valuable item fast enough for live production traffic.`,
+        interviewerLens: "This reveals whether you recognize when ordered extraction matters more than repeated rescans of the entire dataset.",
+      };
+    case "binary-search":
+      return {
+        title: `Find the scaling threshold for ${companyName}'s ${theme.domain}`,
+        prompt: `The platform team is tuning a control knob such as capacity, latency, or cutoff size. Determine the smallest or largest feasible threshold that keeps the system inside the required service-level target.`,
+        interviewerLens: "Strong candidates notice the hidden monotonic property quickly and avoid linear simulation.",
+      };
+    case "search":
+      return {
+        title: `Improve ${companyName}'s ${theme.catalog} experience`,
+        prompt: `You are building a smarter lookup path for ${theme.catalog}. Requests arrive in messy real-world form, but the system still needs to answer quickly and consistently at scale.`,
+        interviewerLens: "This tests whether you can model lookup-heavy problems with the right structure instead of bolting logic onto repeated string scans.",
+      };
+    case "tree":
+      return {
+        title: `Analyze ${companyName}'s ${theme.hierarchy}`,
+        prompt: `A critical decision depends on information spread across a hierarchy of services, managers, or locations. Traverse the structure efficiently and compute the requested result without duplicating work.`,
+        interviewerLens: "Interviewers are looking for disciplined traversal choices, base cases, and clean propagation of partial results.",
+      };
+    case "stack":
+      return {
+        title: `Validate workflow transitions for ${companyName}`,
+        prompt: `An internal workflow emits actions that must open, close, or reverse in the right order. Detect invalid sequences early and keep the logic robust even when the input stream becomes noisy.`,
+        interviewerLens: "This checks whether you recognize nested structure and use a stack instead of complicated ad hoc branching.",
+      };
+    case "matrix":
+      return {
+        title: `Optimize coverage on ${companyName}'s ${theme.grid}`,
+        prompt: `Operations data arrives as a two-dimensional view of the business. Compute the best path, region, or transformation while keeping both correctness and runtime under control.`,
+        interviewerLens: "This shows whether you can spot grid invariants and avoid recomputing overlapping work.",
+      };
+    case "linked-list":
+      return {
+        title: `Rewire ${companyName}'s processing handoff chain`,
+        prompt: `A processing pipeline hands work from one stage to the next. Reorder or repair the chain safely while preserving the required invariants and minimizing extra memory use.`,
+        interviewerLens: "Interviewers use this to see if pointer updates stay precise when the data structure stops being index-friendly.",
+      };
+    case "greedy":
+      return {
+        title: `Make the best immediate dispatch choices for ${companyName}`,
+        prompt: `You are tuning a system that repeatedly takes the locally best action. Decide whether a greedy rule is enough, prove the intuition through invariants, and implement it cleanly under contest constraints.`,
+        interviewerLens: "This tests whether you can justify a greedy choice instead of relying on instinct alone.",
+      };
+    default:
+      return {
+        title: `Optimize ${theme.workload} signals for ${companyName}`,
+        prompt: `You are analyzing a production stream of ${theme.workload} for ${companyName}. Transform the raw business wording into the right core data structure or invariant, then solve it within the required limits.`,
+        interviewerLens: "This is mainly about spotting the underlying pattern early and reducing a real product scenario to a clean algorithmic core.",
+      };
+  }
+};
+
+const buildCompanyProblemCard = (contest, question, index = 0) => {
+  const companyName = contest.companyName || "This company";
+  const roleTitle = contest.roleTitle || "Software Engineer";
+  const tags = Array.isArray(question?.tags) ? question.tags.map((tag) => String(tag).toLowerCase()) : [];
+  const pattern = detectPattern(tags);
+  const theme = getCompanyTheme(companyName);
+  const narrative = buildProblemNarrative({
+    pattern,
+    companyName,
+    roleTitle,
+    theme,
+    baseQuestion: question,
+  });
+  const difficulty = String(question?.difficulty || "medium").toLowerCase();
+  const timeEstimateMinutes = difficulty === "hard" ? 50 : difficulty === "easy" ? 20 : 35;
+  const focusAreas = (tags.length ? tags : contest.skills || []).slice(0, 4).map(prettifyTag);
+  const skillSummary = readableList(focusAreas);
+
+  return {
+    id: `${contest._id || contest.companyName}-${question?.id || index}-${index}`,
+    contestId: contest._id,
+    contestTitle: contest.title,
+    companyName,
+    roleTitle,
+    title: narrative.title,
+    prompt: narrative.prompt,
+    difficulty,
+    timeEstimateMinutes,
+    focusAreas,
+    hiddenPattern: question?.title || "Classic DSA pattern",
+    aiInsight: `AI insight: this is a company-flavored version of "${question?.title || "a core DSA problem"}". If you abstract the business story into ${skillSummary || "the right data structure"}, the implementation becomes much cleaner.`,
+    interviewerLens: narrative.interviewerLens,
+    sourceNote: `Generated from ${companyName}'s contest signal for ${roleTitle}.`,
+  };
+};
+
 const computeProvisionalScore = (attempt, maxScore) => {
   const questions = Array.isArray(attempt.assessmentQuestions) ? attempt.assessmentQuestions : [];
   const answers = Array.isArray(attempt.answers) ? attempt.answers : [];
@@ -252,6 +555,26 @@ router.get("/company/mine", verifyToken, async (req, res) => {
         stats: grouped[String(contest._id)] || { participants: 0, inProgress: 0, submitted: 0 },
       }))
     );
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.get("/company/problems", verifyToken, async (req, res) => {
+  try {
+    const contests = await Contest.find({ status: "published" }).sort({ startsAt: 1, createdAt: -1 }).limit(8).lean();
+    const sourceContests = contests.length > 0 ? contests : fallbackCompanySeeds;
+    const problems = [];
+
+    sourceContests.forEach((contest) => {
+      const previewQuestions = pickCompanyPreviewQuestions(contest, contests.length > 0 ? 2 : 1);
+      previewQuestions.forEach((question, index) => {
+        problems.push(buildCompanyProblemCard(contest, question, index));
+      });
+    });
+
+    return res.json(problems.slice(0, 8));
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Server error" });
@@ -481,12 +804,24 @@ router.post("/:contestId/live-interviews", verifyToken, async (req, res) => {
       taskTitle,
       taskDescription,
       durationMinutes = 60,
+      scheduledStartTime,
       invitedCandidateEmail = "",
       allowedLanguages = ["javascript", "python", "cpp", "java"],
     } = req.body;
 
-    if (!interviewerName || !taskTitle || !taskDescription) {
-      return res.status(400).json({ message: "Missing required interview fields" });
+    if (!interviewerName || !taskTitle || !taskDescription || !scheduledStartTime) {
+      return res.status(400).json({ message: "Missing required interview fields including scheduled start time" });
+    }
+
+    let startTimeObj;
+    if (String(scheduledStartTime).includes("+") || String(scheduledStartTime).includes("Z")) {
+      startTimeObj = new Date(scheduledStartTime);
+    } else {
+      startTimeObj = new Date(`${scheduledStartTime}+05:30`);
+    }
+
+    if (Number.isNaN(startTimeObj.getTime())) {
+      return res.status(400).json({ message: "Invalid scheduled start time" });
     }
 
     const session = await LiveInterviewSession.create({
@@ -497,6 +832,7 @@ router.post("/:contestId/live-interviews", verifyToken, async (req, res) => {
       taskTitle,
       taskDescription,
       durationMinutes: toNumber(durationMinutes, 60),
+      scheduledStartTime: startTimeObj,
       invitedCandidateEmail: String(invitedCandidateEmail || "").trim().toLowerCase(),
       allowedLanguages: Array.isArray(allowedLanguages) ? allowedLanguages : ["javascript", "python", "cpp", "java"],
     });
@@ -523,6 +859,7 @@ router.get("/live-interviews/mine", verifyToken, async (req, res) => {
     return res.json(
       sessions.map((s) => ({
         ...s,
+        aiChat: Array.isArray(s.aiChat) ? s.aiChat.slice(-50) : [],
         remainingSeconds:
           s.status === "in_progress" && s.endsAt
             ? Math.max(0, Math.floor((new Date(s.endsAt).getTime() - Date.now()) / 1000))
@@ -544,6 +881,21 @@ router.post("/live-interviews/:sessionId/join", verifyToken, async (req, res) =>
 
     const user = await User.findById(req.userId).lean();
     if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (session.scheduledStartTime) {
+      const currentTime = Date.now();
+      const startTime = new Date(session.scheduledStartTime).getTime();
+      const durationMs = toNumber(session.durationMinutes, 60) * 60 * 1000;
+      const endWindowTime = startTime + durationMs + durationMs; // Duration + Buffer (same as duration)
+
+      if (currentTime < startTime) {
+        return res.status(403).json({ message: "not_started" });
+      }
+
+      if (currentTime > endWindowTime) {
+        return res.status(403).json({ message: "expired" });
+      }
+    }
 
     if (String(session.companyUserId) === String(req.userId)) {
       return res.status(400).json({ message: "Organizer cannot join as candidate" });
@@ -575,6 +927,21 @@ router.post("/live-interviews/:sessionId/start", verifyToken, async (req, res) =
 
     if (String(session.companyUserId) !== String(req.userId)) {
       return res.status(403).json({ message: "Only interviewer can start this session" });
+    }
+
+    if (session.scheduledStartTime) {
+      const currentTime = Date.now();
+      const startTime = new Date(session.scheduledStartTime).getTime();
+      const durationMs = toNumber(session.durationMinutes, 60) * 60 * 1000;
+      const endWindowTime = startTime + durationMs + durationMs;
+
+      if (currentTime < startTime) {
+        return res.status(403).json({ message: "not_started" });
+      }
+
+      if (currentTime > endWindowTime) {
+        return res.status(403).json({ message: "expired" });
+      }
     }
 
     if (!session.candidateUserId) {

@@ -20,10 +20,21 @@ const liveInterviewSessionSchema = new mongoose.Schema(
     },
     startsAt: Date,
     endsAt: Date,
+    scheduledStartTime: { type: Date, required: true },
     candidateCode: { type: String, default: "" },
+    candidateLanguage: { type: String, trim: true, lowercase: true, default: "javascript" },
+    candidateOutput: { type: String, default: "" },
     candidateNotes: { type: String, default: "" },
     interviewerFeedback: { type: String, default: "" },
     interviewerRating: { type: Number, min: 0, max: 10 },
+    aiChat: [
+      {
+        role: { type: String, enum: ["user", "ai"], required: true },
+        content: { type: String, default: "" },
+        senderId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        createdAt: { type: Date, default: Date.now }
+      }
+    ]
   },
   { timestamps: true }
 );

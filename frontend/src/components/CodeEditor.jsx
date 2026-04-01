@@ -6,6 +6,8 @@ import { getAllQuestions } from "../api/questions";
 import { Link } from "react-router-dom";
 import { askAI } from "../utils/askAI";
 import BASE_URL from "../config";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const CodeEditor = ({ problem }) => {
   if (!problem) return <p className="text-gray-400">Loading problem...</p>;
@@ -23,10 +25,18 @@ const CodeEditor = ({ problem }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previousSubs, setPreviousSubs] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
+  const [executionAttempts, setExecutionAttempts] = useState(0);
+  const [hintUsageCount, setHintUsageCount] = useState(0);
+  const [aiAssistActions, setAiAssistActions] = useState(0);
+  const [planningTimeSec, setPlanningTimeSec] = useState(0);
 
   // ✅ AI states
   const [aiResponse, setAiResponse] = useState("");
   const [showAIOptions, setShowAIOptions] = useState(false);
+  const sessionStartedAtRef = useRef(Date.now());
+  const firstMeaningfulEditAtRef = useRef(null);
+  const firstHintAtRef = useRef(null);
+  const baselineCodeRef = useRef("");
 
   const defaultBoilerplates = {
     cpp: `#include <bits/stdc++.h>
@@ -66,7 +76,7 @@ Analyze the following ${language} code for:
 Code:
 ${code}
     `;
-      const res = await askAI(prompt);
+      const res = await askAI({ prompt });
       setAiResponse(
         res.result || res.message || "AI could not analyze the code quality."
       );
@@ -79,6 +89,15 @@ ${code}
   // ✅ Load saved code or boilerplate when problem/language changes
   useEffect(() => {
     const savedCode = localStorage.getItem(`code_${problem.id}_${language}`);
+    const initialCode = savedCode || defaultBoilerplates[language];
+    baselineCodeRef.current = initialCode;
+    sessionStartedAtRef.current = Date.now();
+    firstMeaningfulEditAtRef.current = null;
+    firstHintAtRef.current = null;
+    setPlanningTimeSec(0);
+    setExecutionAttempts(0);
+    setHintUsageCount(0);
+    setAiAssistActions(0);
     if (savedCode) {
       setCode(savedCode);
     } else {
@@ -158,8 +177,62 @@ ${code}
     if (!stored) localStorage.setItem(`failCount_${problem.id}`, "0");
   }, [problem.id]);
 
+  const getPlanningTimeValue = () => {
+    const planningMs = (firstMeaningfulEditAtRef.current || Date.now()) - sessionStartedAtRef.current;
+    return Math.max(0, Math.round(planningMs / 1000));
+  };
+
+  const updatePlanningMetric = () => {
+    setPlanningTimeSec(getPlanningTimeValue());
+  };
+
+  const handleEditorChange = (nextCode) => {
+    const codeValue = nextCode ?? "";
+    if (!firstMeaningfulEditAtRef.current && codeValue !== baselineCodeRef.current) {
+      firstMeaningfulEditAtRef.current = Date.now();
+      updatePlanningMetric();
+    }
+    setCode(codeValue);
+  };
+
+  const recordAiAssistAction = ({ isHint = false } = {}) => {
+    setAiAssistActions((prev) => prev + 1);
+    if (isHint) {
+      setHintUsageCount((prev) => prev + 1);
+      if (!firstHintAtRef.current) {
+        firstHintAtRef.current = getPlanningTimeValue();
+      }
+    }
+  };
+
+  const thoughtProcessInsights = (() => {
+    const insights = [];
+    const tags = (problem.tags || []).map((tag) => String(tag).toLowerCase());
+    const effectivePlanning = planningTimeSec || getPlanningTimeValue();
+
+    if (effectivePlanning > 0 && effectivePlanning < 45 && executionAttempts >= 2) {
+      insights.push("You rush into coding without planning.");
+    }
+    if (tags.some((tag) => tag.includes("dp") || tag.includes("dynamic")) && (executionAttempts >= 3 || hintUsageCount > 0)) {
+      insights.push("You struggle with DP transitions.");
+    }
+    if (hintUsageCount >= 2) {
+      insights.push("You lean on hints quickly. Write the steps in plain English before asking again.");
+    }
+    if (executionAttempts >= 3 && !insights.includes("You struggle with DP transitions.")) {
+      insights.push("Multiple attempts suggest your approach is still evolving.");
+    }
+    if (insights.length === 0) {
+      insights.push("Your current session looks steady. Validate edge cases before you submit.");
+    }
+
+    return insights.slice(0, 2);
+  })();
+
   const handleRun = async () => {
     setIsRunning(true);
+    setExecutionAttempts((prev) => prev + 1);
+    updatePlanningMetric();
     const res = await runUserCode("run");
     setResults(res);
 
@@ -196,20 +269,33 @@ ${code}
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setExecutionAttempts((prev) => prev + 1);
+    updatePlanningMetric();
     try {
       const res = await runUserCode("submit");
       setResults(res);
 
       const token = localStorage.getItem("token");
       const submissionStatus = res.every((r) => r.passed) ? "success" : "failed";
+      const totalTimeTaken = Math.max(
+        1,
+        Math.round((Date.now() - sessionStartedAtRef.current) / 1000)
+      );
 
       await submitCode(
         {
           questionId: problem.id,
           code,
           language,
-          timeTaken: 0,
+          timeTaken: totalTimeTaken,
           status: submissionStatus,
+          thoughtProcess: {
+            planningTimeSec: getPlanningTimeValue(),
+            executionAttempts: executionAttempts + 1,
+            hintUsageCount,
+            aiAssistActions,
+            firstHintAtSec: firstHintAtRef.current,
+          },
         },
         token
       );
@@ -238,10 +324,11 @@ ${code}
 
   // ---- AI Handlers ----
   const handleAIHint = async () => {
+    recordAiAssistAction({ isHint: true });
     setAiResponse("Thinking...");
     try {
       const prompt = `Give me step-by-step hints for solving this problem:\n\n${problem.description}. give only hints not the full code`;
-      const res = await askAI(prompt);
+      const res = await askAI({ prompt });
       setAiResponse(res.result || res.message || "AI could not generate hints.");
     } catch (err) {
       setAiResponse("Error while fetching hints.");
@@ -249,10 +336,11 @@ ${code}
   };
 
   const handleAIScan = async () => {
+    recordAiAssistAction();
     setAiResponse("Scanning your code...");
     try {
       const prompt = `Question:\n${problem.description}\n\nUser's Code (${language}):\n${code}\n\nScan the code and point out mistakes or improvements.`;
-      const res = await askAI(prompt);
+      const res = await askAI({ prompt });
       setAiResponse(
         res.result || res.message || "AI could not analyze the code."
       );
@@ -263,6 +351,7 @@ ${code}
 
   // ✅ AI: Approaches
   const handleAIApproach = async () => {
+    recordAiAssistAction();
     setAiResponse("Thinking of possible approaches...");
     try {
       const prompt = `
@@ -274,7 +363,7 @@ Give 2-3 different *approaches* or *strategies* to solve this problem — from b
 ✅ Focus on algorithmic logic, data structures, and thought process.
 Keep it short and structured, don't keep it too long.
 `;
-      const res = await askAI(prompt);
+      const res = await askAI({ prompt });
       setAiResponse(res.result || res.message || "AI could not generate approaches.");
     } catch (err) {
       setAiResponse("Error while fetching approaches.");
@@ -283,6 +372,7 @@ Keep it short and structured, don't keep it too long.
 
   // ✅ AI: Optimization
   const handleAIOptimization = async () => {
+    recordAiAssistAction();
     setAiResponse("Finding possible optimizations...");
     try {
       const prompt = `
@@ -297,7 +387,7 @@ Suggest possible *optimizations* in logic, complexity, or space usage.
 ✅ Just explain the improvements that can make it faster or cleaner.
 Keep it concise.
 `;
-      const res = await askAI(prompt);
+      const res = await askAI({ prompt });
       setAiResponse(res.result || res.message || "AI could not generate optimizations.");
     } catch (err) {
       setAiResponse("Error while fetching optimizations.");
@@ -322,6 +412,37 @@ Keep it concise.
         </select>
       </div>
 
+      <div className="mb-4 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-cyan-300">Thought Process Tracker</h3>
+            <p className="text-xs text-slate-400">Tracking planning, retries, and hint dependence while you solve.</p>
+          </div>
+          <div className="text-[11px] font-semibold text-slate-300">
+            AI Insight: <span className="text-cyan-300">{thoughtProcessInsights[0]}</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+            <div className="text-[10px] uppercase tracking-widest text-slate-500">Time Before Coding</div>
+            <div className="text-2xl font-bold text-white mt-1">{planningTimeSec || getPlanningTimeValue()}s</div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+            <div className="text-[10px] uppercase tracking-widest text-slate-500">Number of Attempts</div>
+            <div className="text-2xl font-bold text-white mt-1">{executionAttempts}</div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+            <div className="text-[10px] uppercase tracking-widest text-slate-500">Hint Usage</div>
+            <div className="text-2xl font-bold text-white mt-1">{hintUsageCount}</div>
+          </div>
+        </div>
+        {thoughtProcessInsights[1] && (
+          <div className="mt-3 text-xs text-slate-300">
+            <span className="font-semibold text-cyan-300">Secondary Insight:</span> {thoughtProcessInsights[1]}
+          </div>
+        )}
+      </div>
+
       {/* Resizable editor */}
       <div
         className="border border-white/10 rounded overflow-hidden relative"
@@ -331,7 +452,7 @@ Keep it concise.
           height="100%"
           language={language === "cpp" ? "cpp" : language}
           value={code}
-          onChange={setCode}
+          onChange={handleEditorChange}
           theme="vs-dark"
           options={{
             lineNumbers: "on",
@@ -409,24 +530,41 @@ Keep it concise.
 
       {/* 🔹 AI Response */}
       {aiResponse && (
-        <div className="mt-4 p-3 border border-white/20 rounded bg-[#1a1a1a]">
-          <h3 className="font-semibold text-cyan-400">AI Assistant:</h3>
-          <div
-            className="whitespace-pre-wrap text-gray-200 leading-relaxed"
-            dangerouslySetInnerHTML={{
-              __html: aiResponse
-                .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // bold
-                .replace(/\*(.*?)\*/g, "<em>$1</em>") // italic
-                .replace(/```[\s\S]*?```/g, (match) =>
-                  `<pre class='bg-black/30 p-2 rounded text-gray-100 overflow-x-auto'>${match
-                    .replace(/```/g, "")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")}</pre>`
-                ) // code blocks
-                .replace(/\n/g, "<br/>"), // line breaks
-            }}
-          />
-
+        <div className="mt-4 p-4 border border-white/20 rounded-xl bg-[#1a1a1a]">
+          <h3 className="font-semibold text-cyan-400 mb-2">AI Assistant:</h3>
+          <div className="text-gray-200 text-sm leading-relaxed prose prose-invert max-w-none">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2 text-white" {...props} />,
+                h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-4 mb-2 text-white" {...props} />,
+                h3: ({node, ...props}) => <h3 className="text-md font-bold mt-3 mb-1 text-cyan-300" {...props} />,
+                h4: ({node, ...props}) => <h4 className="text-base font-bold mt-2 mb-1 text-cyan-400" {...props} />,
+                code: ({node, inline, className, children, ...props}) => {
+                  const match = /language-(\w+)/.exec(className || '');
+                  return !inline ? (
+                    <div className="my-3 overflow-hidden rounded-lg border border-white/10 bg-black/40">
+                      <pre className="p-3 overflow-x-auto text-sm font-mono text-gray-100">
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      </pre>
+                    </div>
+                  ) : (
+                    <code className="bg-black/40 text-emerald-300 px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+                      {children}
+                    </code>
+                  );
+                },
+                p: ({node, ...props}) => <p className="mb-3 whitespace-pre-wrap" {...props} />,
+                ul: ({node, ...props}) => <ul className="list-disc ml-5 mb-3 space-y-1 text-gray-300" {...props} />,
+                ol: ({node, ...props}) => <ol className="list-decimal ml-5 mb-3 space-y-1 text-gray-300" {...props} />,
+                li: ({node, ...props}) => <li className="mb-1" {...props} />
+              }}
+            >
+              {aiResponse}
+            </ReactMarkdown>
+          </div>
         </div>
       )}
 

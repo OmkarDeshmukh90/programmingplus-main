@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
 const Submission = require("../models/Submission");
+const LiveInterviewSession = require("../models/LiveInterviewSession");
+const Interview = require("../models/Interview");
 const verifyToken = require("../middleware/auth");
 const questionsData = require("../data/questions.json");
 
@@ -81,10 +83,128 @@ const buildProgressData = (submissions, windowDays = 14) => {
   return entries;
 };
 
+const normalizeTagKey = (rawTag) =>
+  String(rawTag || "general")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-");
+
+const struggleInsightFromTag = (rawTag) => {
+  const tag = normalizeTagKey(rawTag);
+  if (tag.includes("dp") || tag.includes("dynamic")) {
+    return "You struggle with DP transitions.";
+  }
+  if (tag.includes("graph")) {
+    return "Graphs are causing repeated rework in your solutions.";
+  }
+  if (tag.includes("tree")) {
+    return "Tree problems need a clearer traversal plan before you code.";
+  }
+  if (tag.includes("greedy")) {
+    return "Greedy choices are not feeling intuitive yet.";
+  }
+  if (tag.includes("binary-search")) {
+    return "Binary search boundaries are creating avoidable retries.";
+  }
+  return `You hit friction most often on ${toTopicName(rawTag)} problems.`;
+};
+
+const buildThoughtProcessSummary = (submissions, questionById) => {
+  const tracked = submissions.filter((sub) => sub.thoughtProcess);
+  if (tracked.length === 0) {
+    return {
+      averagePlanningTimeSec: 0,
+      averageAttempts: 0,
+      totalHintsUsed: 0,
+      totalAiAssistActions: 0,
+      insights: [
+        "Thought process insights will appear after you start solving with the tracker enabled.",
+      ],
+    };
+  }
+
+  const planningSamples = tracked.map((sub) => Math.max(0, sub.thoughtProcess?.planningTimeSec || 0));
+  const attemptSamples = tracked.map((sub) => Math.max(0, sub.thoughtProcess?.executionAttempts || 0));
+  const hintSamples = tracked.map((sub) => Math.max(0, sub.thoughtProcess?.hintUsageCount || 0));
+  const aiAssistSamples = tracked.map((sub) => Math.max(0, sub.thoughtProcess?.aiAssistActions || 0));
+
+  const averagePlanningTimeSec = Math.round(
+    planningSamples.reduce((sum, value) => sum + value, 0) / Math.max(planningSamples.length, 1)
+  );
+  const averageAttempts = Number(
+    (
+      attemptSamples.reduce((sum, value) => sum + value, 0) / Math.max(attemptSamples.length, 1)
+    ).toFixed(1)
+  );
+  const totalHintsUsed = hintSamples.reduce((sum, value) => sum + value, 0);
+  const totalAiAssistActions = aiAssistSamples.reduce((sum, value) => sum + value, 0);
+
+  const rushedRate =
+    tracked.filter((sub) => (sub.thoughtProcess?.planningTimeSec || 0) > 0 && (sub.thoughtProcess?.planningTimeSec || 0) < 45)
+      .length / tracked.length;
+  const hintHeavyRate =
+    tracked.filter((sub) => (sub.thoughtProcess?.hintUsageCount || 0) > 0).length / tracked.length;
+  const multiAttemptRate =
+    tracked.filter((sub) => (sub.thoughtProcess?.executionAttempts || 0) >= 3).length / tracked.length;
+
+  const struggleTagScores = new Map();
+  for (const sub of tracked) {
+    const question = questionById.get(Number(sub.questionId));
+    const primaryTag = question?.tags?.[0];
+    if (!primaryTag) continue;
+
+    const score =
+      Math.max(0, sub.thoughtProcess?.hintUsageCount || 0) * 2 +
+      Math.max(0, sub.thoughtProcess?.executionAttempts || 0) +
+      (sub.status === "failed" ? 2 : 0);
+
+    struggleTagScores.set(primaryTag, (struggleTagScores.get(primaryTag) || 0) + score);
+  }
+
+  const topStruggleTag = Array.from(struggleTagScores.entries()).sort((a, b) => b[1] - a[1])[0]?.[0];
+
+  const insights = [];
+  if (rushedRate >= 0.4 || averagePlanningTimeSec < 45) {
+    insights.push("You rush into coding without planning.");
+  }
+  if (multiAttemptRate >= 0.35 || averageAttempts >= 3) {
+    insights.push("You need multiple attempts before locking in a working approach.");
+  }
+  if (hintHeavyRate >= 0.35 || totalHintsUsed >= 3) {
+    insights.push("You lean on hints quickly. Spend another minute outlining the idea before asking for help.");
+  }
+  if (topStruggleTag) {
+    insights.push(struggleInsightFromTag(topStruggleTag));
+  }
+  if (insights.length === 0) {
+    insights.push("You usually pause to plan before coding, which keeps your retries low.");
+  }
+
+  return {
+    averagePlanningTimeSec,
+    averageAttempts,
+    totalHintsUsed,
+    totalAiAssistActions,
+    insights: insights.slice(0, 3),
+    topStruggleTag: topStruggleTag ? toTopicName(topStruggleTag) : null,
+  };
+};
+
 const buildDashboardPayload = async (userId) => {
-  const [user, submissions] = await Promise.all([
+  const [user, submissions, liveSessions, standaloneInterviews] = await Promise.all([
     User.findById(userId).lean(),
     Submission.find({ userId }).sort({ submittedAt: 1 }).lean(),
+    LiveInterviewSession.find({
+      $or: [
+        { candidateUserId: userId },
+        { invitedCandidateEmail: (await User.findById(userId).select("email")).email.toLowerCase() }
+      ],
+      status: { $in: ["scheduled", "in_progress"] }
+    }).populate("contestId", "title companyName").lean(),
+    Interview.find({
+      "candidate.email": (await User.findById(userId).select("email")).email.toLowerCase(),
+      status: { $in: ["scheduled", "in_progress"] }
+    }).lean()
   ]);
 
   if (!user) {
@@ -171,6 +291,7 @@ const buildDashboardPayload = async (userId) => {
 
   const streaks = buildStreaks(successSubmissions);
   const progressData = buildProgressData(submissions, 14);
+  const thoughtProcess = buildThoughtProcessSummary(submissions, questionById);
 
   const solvedCount = solvedQuestionSet.size;
   const attemptedCount = attemptedQuestionSet.size;
@@ -186,8 +307,40 @@ const buildDashboardPayload = async (userId) => {
 
   const weeklyTarget = Math.max(3, Math.min(10, Math.ceil((totalQuestions - solvedCount) / 8)));
 
+  // Build unified upcoming interviews
+  const upcomingInterviews = [
+    ...liveSessions.map(s => ({
+      id: s._id,
+      title: s.taskTitle || s.contestId?.title || "Live Interview",
+      type: "Live",
+      startTime: s.scheduledStartTime,
+      duration: s.durationMinutes,
+      roomToken: s._id.toString(),
+      link: `/interview/room/${s._id}`,
+      isContest: true
+    })),
+    ...standaloneInterviews.map(i => ({
+      id: i._id,
+      title: i.title,
+      type: i.type || "Interview",
+      startTime: i.schedule?.date && i.schedule?.startTime 
+        ? new Date(`${i.schedule.date}T${i.schedule.startTime}:00+05:30`) 
+        : i.createdAt,
+      duration: i.duration,
+      roomToken: i.roomToken,
+      link: `/interview/room/${i.roomToken}`,
+      isContest: false
+    }))
+  ].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
   return {
-    user: { name: user.name, email: user.email, id: String(user._id) },
+    user: { 
+      name: user.name, 
+      email: user.email, 
+      id: String(user._id), 
+      role: user.role || "candidate",
+      solvedQuestions: user.solvedQuestions || []
+    },
     summary: {
       solvedCount,
       attemptedCount,
@@ -201,6 +354,8 @@ const buildDashboardPayload = async (userId) => {
     topics,
     difficultyData,
     progressData,
+    thoughtProcess,
+    upcomingInterviews,
     motivation: {
       headline:
         solvedCount === 0

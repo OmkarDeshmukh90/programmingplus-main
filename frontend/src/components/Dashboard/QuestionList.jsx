@@ -16,9 +16,9 @@ export default function QuestionList() {
   }, [token]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 p-6">
       {questions.map((q) => (
-        <QuestionCard key={q._id} question={q} />
+        <QuestionCard key={q.id || q._id} question={q} />
       ))}
     </div>
   );

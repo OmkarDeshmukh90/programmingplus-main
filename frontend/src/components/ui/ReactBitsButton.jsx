@@ -2,11 +2,11 @@ import React from "react";
 
 const variantClasses = {
   primary:
-    "bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 text-slate-950 shadow-[0_8px_28px_rgba(56,189,248,0.45)] hover:shadow-[0_12px_36px_rgba(56,189,248,0.55)]",
+    "bg-[var(--accent)] text-white shadow-[0_10px_30px_rgba(79,70,229,0.35)] hover:shadow-[0_16px_36px_rgba(79,70,229,0.45)]",
   success:
-    "bg-gradient-to-r from-emerald-400 via-lime-300 to-emerald-500 text-slate-950 shadow-[0_8px_28px_rgba(52,211,153,0.45)] hover:shadow-[0_12px_36px_rgba(52,211,153,0.55)]",
+    "bg-[var(--accent-2)] text-white shadow-[0_10px_30px_rgba(6,182,212,0.35)] hover:shadow-[0_16px_36px_rgba(6,182,212,0.45)]",
   neutral:
-    "bg-slate-800 text-slate-100 border border-slate-600 hover:bg-slate-700",
+    "bg-[#0a0a0a]/70 text-slate-100 border border-[rgba(255,255,255,0.08)] hover:bg-[#111111]",
 };
 
 function cn(...classes) {
@@ -31,7 +31,7 @@ export default function ReactBitsButton({
         "before:absolute before:inset-0 before:-z-10 before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100",
         "before:bg-[radial-gradient(circle_at_25%_20%,rgba(255,255,255,0.38),transparent_40%)]",
         "active:scale-[0.98] hover:-translate-y-0.5",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]",
         variantClasses[variant] || variantClasses.primary,
         fullWidth && "w-full",
         isDisabled && "cursor-not-allowed opacity-60 hover:translate-y-0 hover:shadow-none",

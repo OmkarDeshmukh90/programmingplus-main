@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import BASE_URL from "../../config";
+import ReactBitsButton from "../ui/ReactBitsButton";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -56,9 +57,9 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-gray-900 to-zinc-900">
-      <div className="bg-gray-800/90 backdrop-blur-sm p-10 rounded-3xl shadow-2xl w-full max-w-md border border-gray-700/50 relative z-10">
-        <h2 className="text-3xl font-bold text-white mb-6 text-center">
+    <div className="app-page flex items-center justify-center p-4">
+      <div className="app-card w-full max-w-md p-10">
+        <h2 className="text-3xl font-semibold text-white mb-6 text-center">
           Forgot Password
         </h2>
 
@@ -71,15 +72,16 @@ export default function ForgotPassword() {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 rounded-xl bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400 transition mb-4"
+              className="app-input mb-4"
             />
-            <button
+            <ReactBitsButton
               onClick={handleSendOtp}
               disabled={loading || !email}
-              className="w-full py-3 bg-indigo-500 text-white rounded-xl font-bold hover:bg-indigo-600 transition"
+              loading={loading}
+              fullWidth
             >
-              {loading ? "Sending OTP..." : "Send OTP"}
-            </button>
+              Send OTP
+            </ReactBitsButton>
           </>
         )}
 
@@ -90,15 +92,17 @@ export default function ForgotPassword() {
               placeholder="Enter OTP"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              className="w-full p-3 rounded-xl bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400 transition mb-4"
+              className="app-input mb-4"
             />
-            <button
+            <ReactBitsButton
               onClick={handleVerifyOtp}
               disabled={loading || !otp}
-              className="w-full py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition"
+              loading={loading}
+              variant="success"
+              fullWidth
             >
-              {loading ? "Verifying..." : "Verify OTP"}
-            </button>
+              Verify OTP
+            </ReactBitsButton>
           </>
         )}
 
@@ -109,15 +113,16 @@ export default function ForgotPassword() {
               placeholder="Enter new password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full p-3 rounded-xl bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400 transition mb-4"
+              className="app-input mb-4"
             />
-            <button
+            <ReactBitsButton
               onClick={handleResetPassword}
               disabled={loading || !newPassword}
-              className="w-full py-3 bg-indigo-500 text-white rounded-xl font-bold hover:bg-indigo-600 transition"
+              loading={loading}
+              fullWidth
             >
-              {loading ? "Resetting..." : "Reset Password"}
-            </button>
+              Reset Password
+            </ReactBitsButton>
           </>
         )}
       </div>
