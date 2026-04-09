@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const http = require('http');
 const { Server } = require('socket.io');
 require('dotenv').config();
+const rateLimit = require('express-rate-limit');
 
 const questionRoutes = require('./routes/questions');
 const submissionRoutes = require('./routes/submissions');
@@ -88,8 +89,27 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.use('/api/ai', aiRoutes);
-app.use('/api/code', codeExecutionRoutes);
+// Rate Limiters to prevent AI API abuse and execution spam
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 100, 
+  message: { message: "Too many requests from this IP, please try again after 15 minutes" }
+});
+
+const aiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, 
+  max: 15, // 15 requests per minute
+  message: { message: "AI rate limit exceeded. Please wait a minute." }
+});
+
+const codeLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 30, // 30 executions per minute
+  message: { message: "Code execution rate limit exceeded." }
+});
+
+app.use('/api/ai', aiLimiter, aiRoutes);
+app.use('/api/code', codeLimiter, codeExecutionRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/discuss', discussRoutes);

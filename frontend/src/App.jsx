@@ -7,6 +7,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { AuthProvider } from "./context/AuthContext";
 import Onboarding from "./pages/Onboarding";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Pages (lazy loaded)
 const Home = lazy(() => import("./pages/Home"));
@@ -50,6 +51,7 @@ const App = () => {
         <ScrollToTop />
         <LayoutMain>
           <Suspense fallback={<div className="app-page flex items-center justify-center p-8 text-slate-300">Loading...</div>}>
+          <ErrorBoundary>
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
@@ -76,6 +78,7 @@ const App = () => {
               {/* 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+          </ErrorBoundary>
           </Suspense>
         </LayoutMain>
       </Router>

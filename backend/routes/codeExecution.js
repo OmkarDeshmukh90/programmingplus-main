@@ -3,6 +3,7 @@ const router = express.Router();
 const verifyToken = require("../middleware/auth");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const axios = require("axios");
 const { spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
@@ -12,6 +13,15 @@ const LiveInterviewSession = require("../models/LiveInterviewSession");
 
 const EXECUTION_TIMEOUT_MS = 10000;
 const SUPPORTED_LANGUAGES = new Set(["cpp", "python", "java", "javascript", "go"]);
+
+// Map our language keys to Piston API compatibility
+const PISTON_LANGUAGE_MAP = {
+  cpp: "c++",
+  python: "python",
+  java: "java",
+  javascript: "javascript",
+  go: "go"
+};
 
 const getUserIdFromAuthHeader = async (authHeader) => {
   if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
@@ -65,19 +75,13 @@ const ensureExecutionAccess = async (req, res, next) => {
 };
 
 const getPythonCandidates = () => {
-  if (process.env.PYTHON_BIN) {
-    return [process.env.PYTHON_BIN];
-  }
-  return process.platform === "win32"
-    ? ["python", "py", "python3"]
-    : ["python3", "python"];
+  if (process.env.PYTHON_BIN) return [process.env.PYTHON_BIN];
+  return process.platform === "win32" ? ["python", "py", "python3"] : ["python3", "python"];
 };
 
 const getCppCompilerCandidates = () => {
   if (process.env.CPP_BIN) return [process.env.CPP_BIN];
-  return process.platform === "win32"
-    ? ["g++", "clang++"]
-    : ["g++", "clang++"];
+  return process.platform === "win32" ? ["g++", "clang++"] : ["g++", "clang++"];
 };
 
 const getJavaCompilerCandidates = () => {
@@ -93,7 +97,7 @@ const getJavaRuntimeCandidates = () => {
 const spawnFirstAvailable = (commands, args, options, onReady, onFail) => {
   const [cmd, ...rest] = commands;
   if (!cmd) {
-    onFail(new Error("Python runtime not found. Install Python or set PYTHON_BIN in backend/.env"));
+    onFail(new Error("Required runtime/compiler not found in local environment."));
     return;
   }
 
@@ -135,9 +139,7 @@ const runCommandWithFallback = (commands, args, options = {}) =>
       let stdout = "";
       let started = false;
 
-      child.once("spawn", () => {
-        started = true;
-      });
+      child.once("spawn", () => { started = true; });
 
       child.once("error", (err) => {
         if (!started && err.code === "ENOENT") {
@@ -147,12 +149,8 @@ const runCommandWithFallback = (commands, args, options = {}) =>
         resolve({ ok: false, output: err.message || "Command failed", code: null });
       });
 
-      child.stdout.on("data", (data) => {
-        stdout += data.toString();
-      });
-      child.stderr.on("data", (data) => {
-        stderr += data.toString();
-      });
+      child.stdout.on("data", (data) => { stdout += data.toString(); });
+      child.stderr.on("data", (data) => { stderr += data.toString(); });
 
       child.on("close", (code) => {
         if (code === 0) {
@@ -167,31 +165,8 @@ const runCommandWithFallback = (commands, args, options = {}) =>
     tryCommand(commands);
   });
 
-const formatInput = (inputObj) => {
-  let stdin = "";
-
-  if (Array.isArray(inputObj.nums)) {
-    stdin += inputObj.nums.length + "\n";
-    stdin += inputObj.nums.join(" ") + "\n";
-  }
-  if (typeof inputObj.target !== "undefined") {
-    stdin += inputObj.target + "\n";
-  }
-
-  return stdin.trim() + "\n";
-};
-
-const normalizeOutput = (rawOutput) => {
-  rawOutput = rawOutput.trim().replace(/\s+/g, " ");
-  const numbers = rawOutput
-    .replace(/\[|\]/g, "")
-    .split(/[\s,]+/)
-    .filter(Boolean)
-    .map(Number);
-  return numbers;
-};
-
-const executeCode = (language, code, stdin) => {
+// --- Local Executor Fallback Logic ---
+const executeLocalCode = (language, code, stdin) => {
   return new Promise((resolve) => {
     const runId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     let filePath = path.join(__dirname, `temp_${runId}`);
@@ -199,9 +174,7 @@ const executeCode = (language, code, stdin) => {
 
     const cleanup = () => {
       for (const f of cleanupFiles) {
-        try {
-          if (fs.existsSync(f)) fs.unlinkSync(f);
-        } catch {}
+        try { if (fs.existsSync(f)) fs.unlinkSync(f); } catch {}
       }
     };
 
@@ -210,42 +183,22 @@ const executeCode = (language, code, stdin) => {
       let timedOut = false;
       const timeout = setTimeout(() => {
         timedOut = true;
-        try {
-          child.kill();
-        } catch {}
+        try { child.kill(); } catch {}
       }, EXECUTION_TIMEOUT_MS);
-
-      console.log(`[EXEC] Child process spawned. (PID: ${child.pid})`);
 
       child.once("error", (err) => {
         clearTimeout(timeout);
-        console.error(`[EXEC] Child process error:`, err);
         cleanup();
         resolve({ output: err.message || "Runtime execution failed", success: false });
       });
 
-      child.stdout.on("data", (data) => {
-        const chunk = data.toString();
-        console.log(`[EXEC] STDOUT: ${chunk}`);
-        stdout += chunk;
-      });
-      child.stderr.on("data", (data) => {
-        const chunk = data.toString();
-        console.warn(`[EXEC] STDERR: ${chunk}`);
-        stdout += chunk;
-      });
+      child.stdout.on("data", (data) => { stdout += data.toString(); });
+      child.stderr.on("data", (data) => { stdout += data.toString(); });
 
       child.on("close", (exitCode) => {
         clearTimeout(timeout);
-        console.log(`[EXEC] Child process closed with code ${exitCode}`);
         cleanup();
-        if (timedOut) {
-          resolve({
-            output: `Execution timed out after ${EXECUTION_TIMEOUT_MS / 1000} seconds.`,
-            success: false,
-          });
-          return;
-        }
+        if (timedOut) return resolve({ output: `Execution timed out after ${EXECUTION_TIMEOUT_MS / 1000}s.`, success: false });
         resolve({ output: stdout.trim(), success: exitCode === 0 });
       });
 
@@ -255,105 +208,115 @@ const executeCode = (language, code, stdin) => {
 
     if (language === "cpp") {
       filePath += ".cpp";
-      console.log(`[EXEC] Preparing C++ execution. File: ${filePath}`);
       fs.writeFileSync(filePath, code);
       const outFile = process.platform === "win32" ? `${filePath}.exe` : `${filePath}.out`;
       cleanupFiles.push(filePath, outFile);
 
       runCommandWithFallback(getCppCompilerCandidates(), [filePath, "-o", outFile]).then((compileRes) => {
-        console.log(`[EXEC] C++ Compile Result:`, compileRes);
         if (!compileRes.ok) {
           cleanup();
-          resolve({ output: compileRes.output || "C++ compilation failed", success: false });
-          return;
+          return resolve({ output: compileRes.output || "C++ compilation failed", success: false });
         }
         const child = spawn(outFile, [], { stdio: ["pipe", "pipe", "pipe"] });
         runWithStdin(child);
       });
     } else if (language === "python") {
       filePath += ".py";
-      console.log(`[EXEC] Preparing Python execution. File: ${filePath}`);
       fs.writeFileSync(filePath, code);
       cleanupFiles.push(filePath);
 
-      spawnFirstAvailable(
-        getPythonCandidates(),
-        [filePath],
-        { stdio: ["pipe", "pipe", "pipe"] },
-        (child) => runWithStdin(child),
-        (err) => {
-          console.error(`[EXEC] Python spawn failed:`, err);
-          cleanup();
-          resolve({ output: err.message || "Python execution failed", success: false });
-        }
+      spawnFirstAvailable(getPythonCandidates(), [filePath], { stdio: ["pipe", "pipe", "pipe"] }, 
+        (child) => runWithStdin(child), 
+        (err) => { cleanup(); resolve({ output: err.message || "Python execution failed", success: false }); }
       );
     } else if (language === "java") {
       filePath += ".java";
-      console.log(`[EXEC] Preparing Java execution. File: ${filePath}`);
       fs.writeFileSync(filePath, code);
       const className = path.basename(filePath, ".java");
       const classFile = path.join(__dirname, `${className}.class`);
       cleanupFiles.push(filePath, classFile);
 
       runCommandWithFallback(getJavaCompilerCandidates(), [filePath], { cwd: __dirname }).then((compileRes) => {
-        console.log(`[EXEC] Java Compile Result:`, compileRes);
         if (!compileRes.ok) {
           cleanup();
-          resolve({ output: compileRes.output || "Java compilation failed", success: false });
-          return;
+          return resolve({ output: compileRes.output || "Java compilation failed", success: false });
         }
-
-        spawnFirstAvailable(
-          getJavaRuntimeCandidates(),
-          ["-cp", __dirname, className],
-          { stdio: ["pipe", "pipe", "pipe"] },
+        spawnFirstAvailable(getJavaRuntimeCandidates(), ["-cp", __dirname, className], { stdio: ["pipe", "pipe", "pipe"] },
           (child) => runWithStdin(child),
-          (err) => {
-            console.error(`[EXEC] Java spawn failed:`, err);
-            cleanup();
-            resolve({ output: err.message || "Java runtime not found", success: false });
-          }
+          (err) => { cleanup(); resolve({ output: err.message || "Java runtime not found", success: false }); }
         );
       });
     } else if (language === "javascript") {
       filePath += ".js";
-      console.log(`[EXEC] Preparing JS (Node) execution. File: ${filePath}`);
       fs.writeFileSync(filePath, code);
       cleanupFiles.push(filePath);
 
-      spawnFirstAvailable(
-        ["node"],
-        [filePath],
-        { stdio: ["pipe", "pipe", "pipe"] },
+      spawnFirstAvailable(["node"], [filePath], { stdio: ["pipe", "pipe", "pipe"] },
         (child) => runWithStdin(child),
-        (err) => {
-          console.error(`[EXEC] Node spawn failed:`, err);
-          cleanup();
-          resolve({ output: err.message || "Node.js execution failed", success: false });
-        }
+        (err) => { cleanup(); resolve({ output: err.message || "Node execution failed", success: false }); }
       );
-    } else if (language === "go") {
-      filePath += ".go";
-      console.log(`[EXEC] Preparing Go execution. File: ${filePath}`);
-      fs.writeFileSync(filePath, code);
-      const outFile = process.platform === "win32" ? `${filePath}.exe` : `${filePath}.out`;
-      cleanupFiles.push(filePath, outFile);
-
-      runCommandWithFallback(["go"], ["build", "-o", outFile, filePath]).then((compileRes) => {
-        console.log(`[EXEC] Go build result:`, compileRes);
-        if (!compileRes.ok) {
-          cleanup();
-          resolve({ output: compileRes.output || "Go build failed", success: false });
-          return;
-        }
-        const child = spawn(outFile, [], { stdio: ["pipe", "pipe", "pipe"] });
-        runWithStdin(child);
-      });
     } else {
-      console.warn(`[EXEC] Unsupported Language: ${language}`);
-      resolve({ output: `Unsupported language: ${language}`, success: false });
+      resolve({ output: `Unsupported local fallback language: ${language}`, success: false });
     }
   });
+};
+
+const formatInput = (inputObj) => {
+  let stdin = "";
+  if (Array.isArray(inputObj.nums)) {
+    stdin += inputObj.nums.length + "\n";
+    stdin += inputObj.nums.join(" ") + "\n";
+  }
+  if (typeof inputObj.target !== "undefined") {
+    stdin += inputObj.target + "\n";
+  }
+  return stdin.trim() + "\n";
+};
+
+const normalizeOutput = (rawOutput) => {
+  rawOutput = rawOutput.trim().replace(/\s+/g, " ");
+  const numbers = rawOutput.replace(/\[|\]/g, "").split(/[\s,]+/).filter(Boolean).map(Number);
+  return numbers;
+};
+
+// Main Execution Router (Uses Piston API with Fallback to Local)
+const executeCode = async (language, code, stdin) => {
+  const pistonLang = PISTON_LANGUAGE_MAP[language];
+  
+  if (!pistonLang) {
+    return { output: `Unsupported language: ${language}`, success: false };
+  }
+
+  // ONLY ATTEMPT PISTON IF WE HAVE AN API KEY ATTACHED in .env OR we intentionally risk 401
+  const pistonKey = process.env.PISTON_API_KEY;
+
+  if (pistonKey) {
+    try {
+      const response = await axios.post("https://emkc.org/api/v2/piston/execute", {
+        language: pistonLang,
+        version: "*",
+        files: [{ content: code }],
+        stdin: stdin
+      }, { 
+        timeout: 10000,
+        headers: { "Authorization": `Bearer ${pistonKey}` }
+      }); 
+
+      const { run } = response.data;
+      return {
+        output: run.output ? run.output.trim() : "",
+        success: run.code === 0,
+        stderr: run.stderr || ""
+      };
+    } catch (err) {
+      console.warn(`[EXEC] Piston API Failed (Status ${err.response?.status}). Falling back to local execution...`);
+      // If we got a 401 or timeout, fall back to executing locally immediately!
+      return await executeLocalCode(language, code, stdin);
+    }
+  } else {
+    // If no API Key config is provided, default exclusively to local spawn (so platform doesn't crash)
+    return await executeLocalCode(language, code, stdin);
+  }
 };
 
 const runCode = async (language, code, testCases) => {
@@ -395,13 +358,8 @@ router.post("/run", verifyToken, async (req, res) => {
 router.post("/execute", ensureExecutionAccess, async (req, res) => {
   const { code, language, stdin = "" } = req.body;
   
-  if (!code || !language) {
-    return res.status(400).json({ message: "Code and language are required" });
-  }
-
-  if (!SUPPORTED_LANGUAGES.has(language)) {
-    return res.status(400).json({ message: `Unsupported language: ${language}` });
-  }
+  if (!code || !language) return res.status(400).json({ message: "Code and language are required" });
+  if (!SUPPORTED_LANGUAGES.has(language)) return res.status(400).json({ message: `Unsupported language: ${language}` });
 
   try {
     const { output, success } = await executeCode(language, code, stdin);
@@ -412,4 +370,3 @@ router.post("/execute", ensureExecutionAccess, async (req, res) => {
 });
 
 module.exports = router;
-

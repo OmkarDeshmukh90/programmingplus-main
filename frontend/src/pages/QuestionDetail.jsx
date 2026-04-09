@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, lazy, Suspense } from "react";
 import { useParams } from "react-router-dom";
 import { getQuestionById } from "../api/questions";
+import { MessageSquare, Code2 } from "lucide-react";
 
 const CodeEditor = lazy(() => import("../components/CodeEditor"));
 
@@ -49,7 +50,25 @@ export default function QuestionDetail() {
     };
   }, []);
 
-  if (loading) return <div className="text-white">Loading...</div>;
+  if (loading) return (
+    <div className="flex flex-col xl:flex-row gap-6 min-h-[calc(100vh-140px)] w-full p-4 animate-pulse">
+      <div className="w-full xl:w-1/2 bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6">
+        <div className="h-8 w-1/3 bg-slate-700/50 rounded-full mb-6"></div>
+        <div className="h-10 w-3/4 bg-slate-700/50 rounded-lg mb-4"></div>
+        <div className="h-6 w-1/4 bg-slate-700/50 rounded mb-12"></div>
+        <div className="space-y-4">
+          <div className="h-4 bg-slate-700/50 rounded w-full"></div>
+          <div className="h-4 bg-slate-700/50 rounded w-full"></div>
+          <div className="h-4 bg-slate-700/50 rounded w-5/6"></div>
+          <div className="h-4 bg-slate-700/50 rounded w-4/6"></div>
+        </div>
+      </div>
+      <div className="w-full xl:w-1/2 bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6">
+        <div className="h-12 w-full bg-slate-700/50 rounded-lg mb-6"></div>
+        <div className="h-[400px] w-full bg-slate-700/50 rounded-xl"></div>
+      </div>
+    </div>
+  );
   if (!problem) return <div className="text-white">Problem not found</div>;
 
   const renderCompact = (val) =>
@@ -175,14 +194,25 @@ export default function QuestionDetail() {
         )}
 
         {tab === "discussion" && (
-          <div className="app-empty">
-            Discussion threads will appear here. Use Discuss to share approaches.
+          <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-slate-900/40 rounded-xl border border-dashed border-slate-700">
+            <MessageSquare className="w-12 h-12 text-slate-500 mb-4 opacity-50" />
+            <h3 className="text-lg font-semibold text-slate-300 mb-1">No Discussions Yet</h3>
+            <p className="text-sm text-slate-500 max-w-sm mb-6">
+              Be the first to share your approach, ask a question, or discuss edge cases for this problem.
+            </p>
+            <button className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition text-sm shadow-lg shadow-indigo-900/20">
+              Start a Discussion
+            </button>
           </div>
         )}
 
         {tab === "submissions" && (
-          <div className="app-empty">
-            Submission history will appear here after your first attempt.
+          <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-slate-900/40 rounded-xl border border-dashed border-slate-700">
+            <Code2 className="w-12 h-12 text-slate-500 mb-4 opacity-50" />
+            <h3 className="text-lg font-semibold text-slate-300 mb-1">No Submissions</h3>
+            <p className="text-sm text-slate-500 max-w-sm">
+              You haven't submitted any solutions for this problem yet. Run your code in the editor to see your submission history here.
+            </p>
           </div>
         )}
       </div>
