@@ -1,10 +1,15 @@
-import React, { useEffect, useState, useRef } from "react";
+/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useContext, useEffect, useState, useRef } from "react";
+
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import { io } from "socket.io-client";
 import axios from "axios";
 import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 import BASE_URL from "../config";
+import { AuthContext } from "../context/AuthContext";
+
 
 const LANGUAGES = [
   { id: "javascript", label: "JavaScript" },
@@ -38,7 +43,10 @@ const InterviewRoom = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const role = searchParams.get("role") || "candidate";
-  const userName = localStorage.getItem("userName") || (role === "interviewer" ? "Interviewer" : "Candidate");
+  const { userName: contextUserName } = useContext(AuthContext);
+  // Fall back to role-based label if context hasn't loaded yet
+  const userName = contextUserName || (role === "interviewer" ? "Interviewer" : "Candidate");
+
 
   const [interview, setInterview] = useState(null);
   const [loading, setLoading] = useState(true);

@@ -44,7 +44,7 @@ module.exports = (io) => {
       socket.data.isLiveSession = isLiveSession;
 
       console.log(`Socket ${socket.id} joined room ${room} (LiveSession: ${isLiveSession})`);
-      
+
       // Notify others in the room
       socket.to(room).emit("user-joined", { socketId: socket.id });
 
@@ -53,8 +53,8 @@ module.exports = (io) => {
         code: isLiveSession ? interview.candidateCode : interview.currentCode,
         language: isLiveSession ? (interview.candidateLanguage || "javascript") : interview.currentLanguage,
         output: isLiveSession ? (interview.candidateOutput || "") : (interview.currentOutput || ""),
-        chatHistory: isLiveSession ? interview.aiChat.map(m => ({ role: m.role, text: m.content, senderName: m.role === 'ai' ? 'AI' : 'Candidate' })) : interview.chatHistory,
-        aiChatHistory: isLiveSession ? interview.aiChat.map(m => ({ role: m.role, text: m.content, senderName: m.role === 'ai' ? 'AI Assistant' : 'Candidate' })) : [],
+        chatHistory: isLiveSession ? (interview.aiChat || []).map(m => ({ role: m.role, text: m.content, senderName: m.role === 'ai' ? 'AI' : 'Candidate' })) : (interview.chatHistory || []),
+        aiChatHistory: isLiveSession ? (interview.aiChat || []).map(m => ({ role: m.role, text: m.content, senderName: m.role === 'ai' ? 'AI Assistant' : 'Candidate' })) : [],
         notes: isLiveSession ? (interview.notes || "") : (interview.notes || ""),
         whiteboardData: interview.whiteboardData,
         timer: isLiveSession ? { remainingTime: (interview.durationMinutes || 60) * 60, isRunning: interview.status === 'in_progress' } : interview.timerStatus,
@@ -67,9 +67,9 @@ module.exports = (io) => {
       const room = socket.data.room;
       if (!room) return;
       socket.to(room).emit("code-update", { code, language });
-      
-      const updateData = socket.data.isLiveSession 
-        ? { candidateCode: code, candidateLanguage: language } 
+
+      const updateData = socket.data.isLiveSession
+        ? { candidateCode: code, candidateLanguage: language }
         : { currentCode: code, currentLanguage: language };
 
       const Model = socket.data.isLiveSession ? LiveInterviewSession : Interview;
@@ -124,12 +124,12 @@ module.exports = (io) => {
       const room = socket.data.room;
       if (!room) return;
       socket.to(room).emit("ai-chat-update", { messages });
-      
+
       // Persist to DB if it's a LiveSession
       if (socket.data.isLiveSession) {
-         // Map to DB schema
-         const aiChat = messages.map(m => ({ role: m.role, content: m.text, createdAt: m.timestamp || new Date() }));
-         LiveInterviewSession.findByIdAndUpdate(socket.data.roomToken, { aiChat }).catch(err => console.error("Sync Error:", err));
+        // Map to DB schema
+        const aiChat = messages.map(m => ({ role: m.role, content: m.text, createdAt: m.timestamp || new Date() }));
+        LiveInterviewSession.findByIdAndUpdate(socket.data.roomToken, { aiChat }).catch(err => console.error("Sync Error:", err));
       }
     });
 
@@ -159,13 +159,13 @@ module.exports = (io) => {
       io.to(room).emit("timer-update", { action, remainingTime });
 
       if (socket.data.isLiveSession) {
-         LiveInterviewSession.findByIdAndUpdate(socket.data.roomToken, {
-           status: action === "start" ? "in_progress" : "completed"
-         }).catch(err => console.error("Timer Persistence Error:", err));
+        LiveInterviewSession.findByIdAndUpdate(socket.data.roomToken, {
+          status: action === "start" ? "in_progress" : "completed"
+        }).catch(err => console.error("Timer Persistence Error:", err));
       } else {
         Interview.findOneAndUpdate(
           { roomToken: socket.data.roomToken },
-          { 
+          {
             "timerStatus.remainingTime": remainingTime,
             "timerStatus.isRunning": action === "start",
             "timerStatus.lastUpdated": new Date()

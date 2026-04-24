@@ -92,9 +92,8 @@ export default function QuestionDetail() {
             <button
               key={item.id}
               onClick={() => setTab(item.id)}
-              className={`px-3 py-1 rounded-full text-xs border ${
-                tab === item.id ? "border-cyan-400 text-cyan-200" : "border-slate-700 text-slate-300"
-              }`}
+              className={`px-3 py-1 rounded-full text-xs border ${tab === item.id ? "border-cyan-400 text-cyan-200" : "border-slate-700 text-slate-300"
+                }`}
             >
               {item.label}
             </button>
@@ -103,7 +102,7 @@ export default function QuestionDetail() {
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div className="animate-in fade-in slide-in-from-left-4 duration-500">
             <div className="flex items-center gap-3 text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em] mb-2">
-               Challenge #{problem?.id} <span className="w-1.5 h-1.5 rounded-full bg-indigo-500/30" /> {problem?.tags?.[0] || "DSA"}
+              Challenge #{problem?.id} <span className="w-1.5 h-1.5 rounded-full bg-indigo-500/30" /> {problem?.tags?.[0] || "DSA"}
             </div>
             <h1 className="text-3xl font-bold text-white tracking-tight">{problem?.title}</h1>
           </div>
@@ -140,22 +139,7 @@ export default function QuestionDetail() {
                 <p className="text-slate-300 whitespace-pre-line">{problem.description}</p>
               </div>
             )}
-            {problem?.inputFormat && (
-              <div className="mb-6">
-                <h3 className="font-semibold text-lg mb-1">Input Format</h3>
-                <pre className="bg-slate-950/70 p-3 rounded text-slate-300 whitespace-pre-wrap border border-slate-800">
-                  {problem.inputFormat}
-                </pre>
-              </div>
-            )}
-            {problem?.outputFormat && (
-              <div className="mb-6">
-                <h3 className="font-semibold text-lg mb-1">Output Format</h3>
-                <pre className="bg-slate-950/70 p-3 rounded text-slate-300 whitespace-pre-wrap border border-slate-800">
-                  {problem.outputFormat}
-                </pre>
-              </div>
-            )}
+
             {problem?.constraints && (
               <div className="mb-6">
                 <h3 className="font-semibold text-lg mb-1">Constraints</h3>

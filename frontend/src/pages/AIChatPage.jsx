@@ -1,8 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+
 import { useSearchParams } from "react-router-dom";
 import { askAI } from "../utils/askAI";
 import { createAIThread, deleteAIThread, listAIThreads, updateAIThread } from "../api/aiThreads";
 import { createLearningPath } from "../api/learningPaths";
+import { AuthContext } from "../context/AuthContext";
+
 
 const STORAGE_KEY = "aiChatThreads_v1";
 
@@ -265,6 +268,8 @@ const CodeBlock = ({ value }) => {
    ══════════════════════════════════════════════════════════════════ */
 const AIChatPage = () => {
   const token = localStorage.getItem("token");
+  const { userName } = useContext(AuthContext);
+
   const [threads, setThreads] = useState([]);
   const [activeThreadId, setActiveThreadId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -772,9 +777,10 @@ const AIChatPage = () => {
                         {/* User Avatar */}
                         {isUser && (
                           <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-400 text-slate-900 flex items-center justify-center text-[11px] font-bold shadow-lg shadow-cyan-600/20 mt-0.5">
-                            Y
+                            {(userName || "U").charAt(0).toUpperCase()}
                           </div>
                         )}
+
                       </div>
                     );
                   })}

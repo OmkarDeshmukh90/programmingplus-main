@@ -21,6 +21,7 @@ const Discuss = lazy(() => import("./pages/Discuss"));
 const Contest = lazy(() => import("./pages/Contest"));
 const Contribute = lazy(() => import("./pages/Contribute"));
 const Profile = lazy(() => import("./pages/Profile"));
+const Visualizer = lazy(() => import("./pages/Visualizer"));
 const CompanyCandidates = lazy(() => import("./pages/CompanyCandidates"));
 const CompanySettings = lazy(() => import("./pages/CompanySettings"));
 const LearningPath = lazy(() => import("./pages/LearningPath"));
@@ -51,34 +52,35 @@ const App = () => {
         <ScrollToTop />
         <LayoutMain>
           <Suspense fallback={<div className="app-page flex items-center justify-center p-8 text-slate-300">Loading...</div>}>
-          <ErrorBoundary>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/login/*" element={<div className="app-page flex items-center justify-center p-4"><SignIn routing="path" path="/login" signUpUrl="/register" fallbackRedirectUrl="/onboarding" /></div>} />
-              <Route path="/register/*" element={<div className="app-page flex items-center justify-center p-4"><SignUp routing="path" path="/register" signInUrl="/login" fallbackRedirectUrl="/onboarding" /></div>} />
-              <Route path="/onboarding" element={<Onboarding />} />
+            <ErrorBoundary>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/login/*" element={<div className="app-page flex items-center justify-center p-4"><SignIn routing="path" path="/login" signUpUrl="/register" fallbackRedirectUrl="/onboarding" /></div>} />
+                <Route path="/register/*" element={<div className="app-page flex items-center justify-center p-4"><SignUp routing="path" path="/register" signInUrl="/login" fallbackRedirectUrl="/onboarding" /></div>} />
+                <Route path="/onboarding" element={<Onboarding />} />
 
-              {/* Protected Routes */}
-              <Route path="/dashboard" element={<Layout> <Dashboard /></Layout>} />
-              <Route path="/problems" element={<Layout><Problems /></Layout>} />
-              <Route path="/contest" element={<Layout><Contest /></Layout>} />
-              <Route path="/discuss" element={<Layout><Discuss /></Layout>} />
-              <Route path="/contribute" element={<Layout><Contribute /></Layout>} />
-              <Route path="/ai-chat" element={<AIChatPage />} />
-              <Route path="/profile" element={<Layout><Profile /></Layout>} />
-              <Route path="/candidates" element={<Layout><CompanyCandidates /></Layout>} />
-              <Route path="/settings" element={<Layout><CompanySettings /></Layout>} />
-              <Route path="/learning-path" element={<Layout><LearningPath /></Layout>} />
-              <Route path="/question/:id" element={<Layout><QuestionDetail /></Layout>} />
-              <Route path="/live-interviews" element={<Layout><LiveInterviews /></Layout>} />
-              <Route path="/interview/room/:roomToken" element={<InterviewRoom />} />
-              <Route path="/analytics" element={<Analytics />} />
+                {/* Protected Routes */}
+                <Route path="/dashboard" element={<Layout> <Dashboard /></Layout>} />
+                <Route path="/problems" element={<Layout><Problems /></Layout>} />
+                <Route path="/contest" element={<Layout><Contest /></Layout>} />
+                <Route path="/discuss" element={<Layout><Discuss /></Layout>} />
+                <Route path="/contribute" element={<Layout><Contribute /></Layout>} />
+                <Route path="/ai-chat" element={<AIChatPage />} />
+                <Route path="/visualize" element={<Layout><Visualizer /></Layout>} />
+                <Route path="/profile" element={<Layout><Profile /></Layout>} />
+                <Route path="/candidates" element={<Layout><CompanyCandidates /></Layout>} />
+                <Route path="/settings" element={<Layout><CompanySettings /></Layout>} />
+                <Route path="/learning-path" element={<Layout><LearningPath /></Layout>} />
+                <Route path="/question/:id" element={<Layout><QuestionDetail /></Layout>} />
+                <Route path="/live-interviews" element={<Layout><LiveInterviews /></Layout>} />
+                <Route path="/interview/room/:roomToken" element={<InterviewRoom />} />
+                <Route path="/analytics" element={<Analytics />} />
 
-              {/* 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </ErrorBoundary>
+                {/* 404 */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </ErrorBoundary>
           </Suspense>
         </LayoutMain>
       </Router>

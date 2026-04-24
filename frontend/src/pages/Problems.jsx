@@ -1,13 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+
 import { Link, useNavigate } from "react-router-dom";
 import { Search, Filter, BookOpen, Layers, Brain, HelpCircle, Target } from "lucide-react";
 import axios from "axios";
 import BASE_URL from "../config";
 import { getAllQuestions } from "../api/questions";
 import QuestionCard from "../components/Dashboard/QuestionCard";
+import { AuthContext } from "../context/AuthContext";
+
 
 export default function Problems() {
   const navigate = useNavigate();
+  const { token } = useContext(AuthContext);
+
   const [questions, setQuestions] = useState([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -16,8 +21,6 @@ export default function Problems() {
   const [attemptedSet, setAttemptedSet] = useState(new Set());
   const [thoughtProcess, setThoughtProcess] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const token = localStorage.getItem("token");
 
   useEffect(() => {
     if (!token) {

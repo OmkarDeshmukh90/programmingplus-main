@@ -9,13 +9,16 @@ import BASE_URL from "../config";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 const CodeEditor = ({ problem }) => {
-  if (!problem) return <p className="text-gray-400">Loading problem...</p>;
-
   const supportedLanguages = ["cpp", "python", "java"];
   const [language, setLanguage] = useState("cpp");
   const [code, setCode] = useState("");
   const [results, setResults] = useState([]);
+  const [activeTestCaseIdx, setActiveTestCaseIdx] = useState(0);
+  const [testCaseExplanations, setTestCaseExplanations] = useState({});
+  const [isExplaining, setIsExplaining] = useState({});
   const [editorHeight, setEditorHeight] = useState(300);
   const isResizing = useRef(false);
   const startY = useRef(0);
@@ -39,24 +42,17 @@ const CodeEditor = ({ problem }) => {
   const baselineCodeRef = useRef("");
 
   const defaultBoilerplates = {
-    cpp: `#include <bits/stdc++.h>
-using namespace std;
-
-int main() {
-    // Write your solution here
-    return 0;
-}`,
-    python: `def main():
-    # Write your solution here
-    pass
-
-if __name__ == "__main__":
-    main()`,
-    java: `import java.util.*;
-public class Main {
-    public static void main(String[] args) {
-        // Write your solution here
-    }
+    cpp: `class Solution {
+public:
+    // Write your function here
+    
+};`,
+    python: `class Solution:
+    # Write your function here
+    pass`,
+    java: `class Solution {
+    // Write your function here
+    
 }`,
   };
 
@@ -233,8 +229,11 @@ ${code}
     setIsRunning(true);
     setExecutionAttempts((prev) => prev + 1);
     updatePlanningMetric();
+    setTestCaseExplanations({});
+    setIsExplaining({});
     const res = await runUserCode("run");
     setResults(res);
+    setActiveTestCaseIdx(0);
 
     // Check run result
     const allPassed = res.every((r) => r.passed);
@@ -271,9 +270,12 @@ ${code}
     setIsSubmitting(true);
     setExecutionAttempts((prev) => prev + 1);
     updatePlanningMetric();
+    setTestCaseExplanations({});
+    setIsExplaining({});
     try {
       const res = await runUserCode("submit");
       setResults(res);
+      setActiveTestCaseIdx(0);
 
       const token = localStorage.getItem("token");
       const submissionStatus = res.every((r) => r.passed) ? "success" : "failed";
@@ -391,6 +393,53 @@ Keep it concise.
       setAiResponse(res.result || res.message || "AI could not generate optimizations.");
     } catch (err) {
       setAiResponse("Error while fetching optimizations.");
+    }
+  };
+
+  // ✅ AI: Explain Test Case Failure
+  const handleExplainFailure = async (idx) => {
+    const result = results[idx];
+    if (!result || result.passed) return;
+
+    recordAiAssistAction({ isHint: true });
+    setIsExplaining(prev => ({ ...prev, [idx]: true }));
+    setTestCaseExplanations(prev => ({ ...prev, [idx]: "Analyzing failure..." }));
+
+    try {
+      const prompt = `
+I am solving this problem:
+${problem.description}
+
+Here is my code (${language}):
+\`\`\`${language}
+${code}
+\`\`\`
+
+For the following input:
+${JSON.stringify(result.input)}
+
+Expected Output:
+${JSON.stringify(result.expectedOutput)}
+
+My Actual Output:
+${JSON.stringify(result.output)}
+
+${result.stderr ? `It also produced this error (stderr):\n${result.stderr}` : ''}
+
+Please explain exactly what is causing this specific error or discrepancy in my logic. Keep it concise, helpful, and don't just give me the full correct code. Focus on the logical flaw.
+`;
+      const res = await askAI({ prompt });
+      setTestCaseExplanations(prev => ({ 
+        ...prev, 
+        [idx]: res.result || res.message || "AI could not generate an explanation." 
+      }));
+    } catch (err) {
+      setTestCaseExplanations(prev => ({ 
+        ...prev, 
+        [idx]: "Error while fetching explanation." 
+      }));
+    } finally {
+      setIsExplaining(prev => ({ ...prev, [idx]: false }));
     }
   };
 
@@ -529,9 +578,19 @@ Keep it concise.
 
 
       {/* 🔹 AI Response */}
-      {aiResponse && (
-        <div className="mt-4 p-4 border border-white/20 rounded-xl bg-[#1a1a1a]">
-          <h3 className="font-semibold text-cyan-400 mb-2">AI Assistant:</h3>
+      {showAIOptions && aiResponse && (
+        <div className="mt-4 relative p-5 border border-cyan-500/30 rounded-2xl bg-gradient-to-b from-cyan-950/20 to-black/60 shadow-[0_0_20px_rgba(34,211,238,0.05)] backdrop-blur-md">
+          <button 
+            onClick={() => setAiResponse("")}
+            className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-500 hover:bg-white/10 hover:text-white transition-all"
+            title="Clear Response"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+          <h3 className="font-bold text-cyan-400 mb-4 flex items-center gap-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"><path d="M12 2a2 2 0 0 1 2 2c-.11.83.34 1.6 1.1 2A3 3 0 0 0 19 6a2 2 0 0 1 2 2c-.11.83.34 1.6 1.1 2A3 3 0 0 0 22 14a2 2 0 0 1-2 2c-.11.83-.34 1.6-1.1 2A3 3 0 0 0 15 22a2 2 0 0 1-2 2c-.11-.83-.34-1.6-1.1-2A3 3 0 0 0 8 18a2 2 0 0 1-2-2c.11-.83-.34-1.6-1.1-2A3 3 0 0 0 2 10a2 2 0 0 1 2-2c.11-.83.34-1.6 1.1-2A3 3 0 0 0 9 2a2 2 0 0 1 2-2z"></path></svg>
+            AI Mentor
+          </h3>
           <div className="text-gray-200 text-sm leading-relaxed prose prose-invert max-w-none">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
@@ -544,14 +603,14 @@ Keep it concise.
                   const match = /language-(\w+)/.exec(className || '');
                   return !inline ? (
                     <div className="my-3 overflow-hidden rounded-lg border border-white/10 bg-black/40">
-                      <pre className="p-3 overflow-x-auto text-sm font-mono text-gray-100">
+                      <pre className="p-3 overflow-x-auto text-sm font-mono text-gray-100 custom-scrollbar">
                         <code className={className} {...props}>
                           {children}
                         </code>
                       </pre>
                     </div>
                   ) : (
-                    <code className="bg-black/40 text-emerald-300 px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+                    <code className="bg-cyan-500/10 text-cyan-300 px-1.5 py-0.5 rounded text-xs font-mono border border-cyan-500/20" {...props}>
                       {children}
                     </code>
                   );
@@ -559,7 +618,8 @@ Keep it concise.
                 p: ({node, ...props}) => <p className="mb-3 whitespace-pre-wrap" {...props} />,
                 ul: ({node, ...props}) => <ul className="list-disc ml-5 mb-3 space-y-1 text-gray-300" {...props} />,
                 ol: ({node, ...props}) => <ol className="list-decimal ml-5 mb-3 space-y-1 text-gray-300" {...props} />,
-                li: ({node, ...props}) => <li className="mb-1" {...props} />
+                li: ({node, ...props}) => <li className="mb-1" {...props} />,
+                a: ({node, ...props}) => <a className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2" {...props} />
               }}
             >
               {aiResponse}
@@ -568,50 +628,137 @@ Keep it concise.
         </div>
       )}
 
-      {/* Results */}
+      {/* Visual Test Case Runner */}
       {results.length > 0 && (
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full border border-white/10 rounded text-left">
-            <thead>
-              <tr className="bg-white/10">
-                <th className="px-2 py-1 border-b border-white/20">#</th>
-                <th className="px-2 py-1 border-b border-white/20">Input</th>
-                <th className="px-2 py-1 border-b border-white/20">Expected</th>
-                <th className="px-2 py-1 border-b border-white/20">Your Output</th>
-                <th className="px-2 py-1 border-b border-white/20 text-center">
-                  Result
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((r, idx) => (
-                <tr
-                  key={idx}
-                  className={r.passed ? "bg-green-900/30" : "bg-red-900/30"}
-                >
-                  <td className="px-2 py-1 border-b border-white/20">{idx + 1}</td>
-                  <td className="px-2 py-1 border-b border-white/20">
-                    <pre className="whitespace-pre-wrap">
-                      {JSON.stringify(r.input)}
-                    </pre>
-                  </td>
-                  <td className="px-2 py-1 border-b border-white/20">
-                    <pre className="whitespace-pre-wrap">
-                      {JSON.stringify(r.expectedOutput)}
-                    </pre>
-                  </td>
-                  <td className="px-2 py-1 border-b border-white/20">
-                    <pre className="whitespace-pre-wrap">
-                      {JSON.stringify(r.output)}
-                    </pre>
-                  </td>
-                  <td className="px-2 py-1 border-b border-white/20 text-center">
-                    {r.passed ? "✅" : "❌"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mt-6 rounded-2xl border border-white/10 bg-black/40 overflow-hidden flex flex-col">
+          {/* Tabs */}
+          <div className="flex items-center gap-1 p-2 border-b border-white/10 bg-white/[0.02] overflow-x-auto custom-scrollbar">
+            {results.map((r, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveTestCaseIdx(idx)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
+                  activeTestCaseIdx === idx
+                    ? "bg-white/10 text-white shadow-md"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]"
+                }`}
+              >
+                <div className={`w-1.5 h-1.5 rounded-full ${r.passed ? 'bg-emerald-400' : 'bg-red-500'}`} />
+                Case {idx + 1}
+              </button>
+            ))}
+          </div>
+
+          {/* Details Panel */}
+          {results[activeTestCaseIdx] && (
+            <div className="p-5 flex flex-col gap-4">
+              <div className="flex items-center gap-3 mb-2">
+                <span className={`text-xl font-bold ${results[activeTestCaseIdx].passed ? 'text-emerald-400' : 'text-red-500'}`}>
+                  {results[activeTestCaseIdx].passed ? "Accepted" : "Wrong Answer"}
+                </span>
+              </div>
+
+              {/* Input */}
+              <div className="space-y-1.5">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Input</div>
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] font-mono text-sm text-slate-300 break-all">
+                  {JSON.stringify(results[activeTestCaseIdx].input)}
+                </div>
+              </div>
+
+              {/* Output vs Expected */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Actual Output</div>
+                  <div className={`p-3 rounded-xl border font-mono text-sm break-all h-full ${
+                    results[activeTestCaseIdx].passed 
+                      ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-300' 
+                      : 'bg-red-500/5 border-red-500/20 text-red-300'
+                  }`}>
+                    {JSON.stringify(results[activeTestCaseIdx].output)}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Expected Output</div>
+                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] font-mono text-sm text-slate-300 break-all h-full">
+                    {JSON.stringify(results[activeTestCaseIdx].expectedOutput)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Raw Console Output (Tracing) */}
+              <div className="space-y-1.5 mt-2">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Console / Stdout</div>
+                <div className="p-3 rounded-xl bg-[#0c0c0c] border border-white/[0.06] font-mono text-sm text-slate-400 min-h-[60px] whitespace-pre-wrap">
+                  {results[activeTestCaseIdx].rawOutput || "No standard output."}
+                </div>
+                {results[activeTestCaseIdx].stderr && (
+                  <div className="mt-2 p-3 rounded-xl bg-red-950/20 border border-red-900/30 font-mono text-sm text-red-400 whitespace-pre-wrap">
+                    {results[activeTestCaseIdx].stderr}
+                  </div>
+                )}
+              </div>
+
+              {/* AI Explanation for Failure */}
+              {!results[activeTestCaseIdx].passed && (
+                <div className="space-y-1.5 mt-4">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-indigo-400">AI Diagnosis</div>
+                    <button
+                      onClick={() => handleExplainFailure(activeTestCaseIdx)}
+                      disabled={isExplaining[activeTestCaseIdx]}
+                      className="px-3 py-1.5 rounded-lg bg-indigo-600/20 text-indigo-300 text-xs font-semibold hover:bg-indigo-600/40 transition-colors border border-indigo-500/30 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isExplaining[activeTestCaseIdx] ? (
+                        <>
+                          <div className="w-3 h-3 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>✨ Explain Failure</>
+                      )}
+                    </button>
+                  </div>
+                  
+                  {testCaseExplanations[activeTestCaseIdx] && (
+                    <div className="p-4 rounded-xl border border-indigo-500/20 bg-indigo-950/20 text-sm text-slate-200 mt-2 prose prose-invert max-w-none">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2 text-white" {...props} />,
+                          h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-4 mb-2 text-white" {...props} />,
+                          h3: ({node, ...props}) => <h3 className="text-md font-bold mt-3 mb-1 text-indigo-300" {...props} />,
+                          h4: ({node, ...props}) => <h4 className="text-base font-bold mt-2 mb-1 text-indigo-400" {...props} />,
+                          code: ({node, inline, className, children, ...props}) => {
+                            const match = /language-(\w+)/.exec(className || '');
+                            return !inline ? (
+                              <div className="my-3 overflow-hidden rounded-lg border border-white/10 bg-black/40">
+                                <pre className="p-3 overflow-x-auto text-sm font-mono text-gray-100">
+                                  <code className={className} {...props}>
+                                    {children}
+                                  </code>
+                                </pre>
+                              </div>
+                            ) : (
+                              <code className="bg-black/40 text-emerald-300 px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+                                {children}
+                              </code>
+                            );
+                          },
+                          p: ({node, ...props}) => <p className="mb-3 whitespace-pre-wrap leading-relaxed" {...props} />,
+                          ul: ({node, ...props}) => <ul className="list-disc ml-5 mb-3 space-y-1 text-gray-300" {...props} />,
+                          ol: ({node, ...props}) => <ol className="list-decimal ml-5 mb-3 space-y-1 text-gray-300" {...props} />,
+                          li: ({node, ...props}) => <li className="mb-1" {...props} />
+                        }}
+                      >
+                        {testCaseExplanations[activeTestCaseIdx]}
+                      </ReactMarkdown>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

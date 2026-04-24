@@ -10,7 +10,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isCompany = role === "company";
-  
+
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -22,10 +22,10 @@ const Navbar = () => {
   }, []);
 
   const publicNavItems = [
-    { label: "Learn", href: "/#learn" },
-    { label: "Compete", href: "/#compete" },
-    { label: "Hire", href: "/#hire" },
-    { label: "AI", href: "/#ai" },
+    { label: "Home", href: "/" },
+    { label: "Practice", href: "/problems" },
+    { label: "Contests", href: "/contest" },
+    { label: "Visualize", href: "/visualize" },
     { label: "Login", href: "/login" },
     { label: "Signup", href: "/register" },
   ];
@@ -34,6 +34,7 @@ const Navbar = () => {
     { label: "Dashboard", href: "/dashboard" },
     { label: "Practice", href: "/problems" },
     { label: "Contests", href: "/contest" },
+    { label: "Visualize", href: "/visualize" },
     { label: "Interviews", href: "/live-interviews" },
     { label: "Discuss", href: "/discuss" },
     { label: "AI", href: "/ai-chat" },
@@ -55,10 +56,10 @@ const Navbar = () => {
   if (isLanding) {
     return (
       <div className={`fixed top-0 left-0 w-full z-50 pointer-events-none transition-all duration-500 ${isScrolled ? "h-[50px] md:h-[60px] bg-transparent border-transparent" : "h-24"}`}>
-        <div 
+        <div
           className={`absolute transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-auto cursor-pointer rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#050505]/40 backdrop-blur-md shadow-[0_8px_32px_0_rgba(0,0,0,0.8)]
-            ${isScrolled 
-              ? "left-2 md:left-4 top-2 p-1.5 scale-75 md:scale-[0.65] origin-top-left" 
+            ${isScrolled
+              ? "left-2 md:left-4 top-2 p-1.5 scale-75 md:scale-[0.65] origin-top-left"
               : "left-1/2 -translate-x-1/2 top-6 p-2 scale-100"
             }`}
           onClick={() => navigate("/")}
@@ -72,7 +73,7 @@ const Navbar = () => {
   return (
     <div className="fixed top-0 left-0 w-full z-50 border-b border-[rgba(255,255,255,0.08)] bg-[#050505]/85 backdrop-blur-md">
       <div className="w-full mx-auto px-4 md:px-8 py-3 relative min-h-[70px] md:min-h-[82px] flex items-center justify-between">
-        
+
         {/* Logo */}
         <div className="flex-shrink-0 flex items-center cursor-pointer relative z-[1001]" onClick={() => navigate("/")}>
           <img src={logo} alt="Programming+" className="w-auto h-[40px] md:h-[56px] block rounded-xl md:rounded-2xl" />

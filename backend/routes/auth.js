@@ -242,6 +242,29 @@ router.post('/reset-password', async (req, res) => {
 
 const { requireAuth } = require('@clerk/express');
 
+// ================= Update Profile (name) =================
+router.patch('/profile', requireAuth(), async (req, res) => {
+  const clerkId = req.auth.userId;
+  const { name } = req.body;
+
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({ message: 'Name is required' });
+  }
+
+  try {
+    const user = await User.findOne({ clerkId });
+    if (!user) return res.status(404).json({ message: 'User not found. Please complete onboarding first.' });
+
+    user.name = name.trim();
+    await user.save();
+
+    return res.json({ success: true, name: user.name, message: 'Profile updated' });
+  } catch (err) {
+    console.error('[PROFILE UPDATE ERROR]', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // ================= Clerk Sync =================
 router.post('/sync', requireAuth(), async (req, res) => {
   const { name, email, role } = req.body;

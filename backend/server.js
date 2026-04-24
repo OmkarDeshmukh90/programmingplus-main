@@ -17,6 +17,7 @@ const authRoutes = require('./routes/auth');
 const analyticsRoutes = require('./routes/analytics');
 const learningPathRoutes = require('./routes/learningPaths');
 const interviewRoutes = require('./routes/interviews');
+const seedRoutes = require('./routes/seed');
 const initLiveInterviewSocket = require('./socket/liveInterviewSocket');
 
 const app = express();
@@ -42,7 +43,7 @@ app.use((req, res, next) => {
   // If credentials are allowed, Origin CANNOT be '*'
   // We must echo the specific origin.
   res.setHeader('Access-Control-Allow-Origin', origin === '*' ? 'http://localhost:5173' : origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   
@@ -118,6 +119,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/contests', contestRoutes);
 app.use('/api/learning-paths', learningPathRoutes);
 app.use('/api/interviews', interviewRoutes);
+app.use('/api/admin/seed', seedRoutes);
 app.use('/api', authRoutes);
 
 mongoose

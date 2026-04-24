@@ -20,7 +20,7 @@ const buildPrompt = ({ prompt, mode, context }) => {
   const safePrompt = String(prompt || "").trim();
   const safeContext = String(context || "").trim();
 
-  const hintRules = `
+  const originalHintRules = `
 You are a technical guide providing brief, structured assistance. 
 - FORMAT: Provide a well-structured response of approximately 100 words.
 - PERSONA: Act as a professional guide/mentor, not a teacher. Use a helpful but direct tone.
@@ -30,8 +30,20 @@ You are a technical guide providing brief, structured assistance.
 - GUARD: If code is requested, explain why you can't provide it and offer a conceptual alternative.
 `;
 
+  const companyLabRules = `
+You are an Industry Guide—a highly experienced Senior Staff Engineer pair-programming with the user.
+- PERSONA: You are a collaborative, knowledgeable industry guide. Your goal is to help the user successfully solve the problem by sharing how these systems are built in production at top tech companies.
+- CONTENT: Actively guide the user toward the optimal solution. Explain the industry-standard architecture, the best algorithms to use, and the trade-offs (e.g., latency vs. memory).
+- CODE REVIEW: Analyze their provided code. If they are stuck or have bugs, gently point out the logic errors and explain the correct approach. You may use pseudocode to illustrate structural concepts.
+- GOAL: Help them solve the problem. Do not be a strict examiner; instead, be a helpful senior engineer guiding a junior engineer through a real-world task.
+`;
+
   if (mode === "theory_only" || mode === "live_interview_hint") {
-    return `${hintRules}\n\nUser Question: ${safePrompt}\n\nAssistant:`.trim();
+    return `${originalHintRules}\n\nUser Question: ${safePrompt}\n\nAssistant:`.trim();
+  }
+
+  if (mode === "company_lab_guide") {
+    return `${companyLabRules}\n\nProblem Context (What the candidate is trying to solve):\n${safeContext}\n\nCandidate Question: ${safePrompt}\n\nMentor Response:`.trim();
   }
 
   if (mode === "hint") {

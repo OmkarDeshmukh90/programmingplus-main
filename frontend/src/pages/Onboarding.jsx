@@ -29,11 +29,20 @@ export default function Onboarding() {
     setError(null);
     try {
       const token = await getToken();
-      const res = await axios.post(
-        `${BASE_URL}/sync`, // the new auth endpoint is in auth config normally
+
+      // Derive the best display name from Clerk
+      const clerkName =
+        user.fullName ||
+        [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+        user.primaryEmailAddress?.emailAddress?.split("@")[0] ||
+        "User";
+      const clerkEmail = user.primaryEmailAddress?.emailAddress || "";
+
+      await axios.post(
+        `${BASE_URL}/sync`,
         {
-          name: user.fullName || user.primaryEmailAddress?.emailAddress?.split("@")[0] || "User",
-          email: user.primaryEmailAddress?.emailAddress,
+          name: clerkName,
+          email: clerkEmail,
           role: role,
         },
         {
@@ -42,6 +51,11 @@ export default function Onboarding() {
           }
         }
       );
+
+      // ✔ Persist identity to localStorage so all pages see the correct name/email
+      localStorage.setItem("userName", clerkName);
+      localStorage.setItem("userEmail", clerkEmail);
+      localStorage.setItem("userRole", role);
 
       setRole(role);
       navigate("/dashboard");
@@ -52,6 +66,7 @@ export default function Onboarding() {
       setLoading(false);
     }
   };
+
 
   if (!userLoaded) return <div className="app-page text-white flex items-center justify-center">Loading...</div>;
 
